@@ -9,7 +9,7 @@ using CefSharp;
 using Org.Mentalis.Network.ProxySocket;
 using Spectre.Console;
 
-namespace SOCKSPingerWpf
+namespace SpysOnePingerWpf
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

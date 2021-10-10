@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCKSPingerWpf", "SOCKSPingerWpf\SOCKSPingerWpf.csproj", "{19F1B182-227F-423E-9F64-019B2450C9E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpysOnePingerWpf", "SpysOnePingerWpf\SpysOnePingerWpf.csproj", "{19F1B182-227F-423E-9F64-019B2450C9E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

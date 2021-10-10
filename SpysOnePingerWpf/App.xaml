@@ -1,7 +1,7 @@
-﻿<Application x:Class="SOCKSPingerWpf.App"
+﻿<Application x:Class="SpysOnePingerWpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SOCKSPingerWpf"
+             xmlns:local="clr-namespace:SpysOnePingerWpf"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

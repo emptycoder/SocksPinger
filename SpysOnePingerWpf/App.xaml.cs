@@ -9,7 +9,7 @@ using System.Windows;
 using CefSharp;
 using CefSharp.Wpf;
 
-namespace SOCKSPingerWpf
+namespace SpysOnePingerWpf
 {
     /// <summary>
     /// Interaction logic for App.xaml
