@@ -4,6 +4,11 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>net5.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
+        <Company>SOCKSPinger</Company>
+        <Product>SOCKSPinger</Product>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <NeutralLanguage>en-001</NeutralLanguage>
     </PropertyGroup>
 
     <ItemGroup>
