@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net5.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CefSharp.Wpf.NETCore" Version="94.4.50" />
+      <PackageReference Include="ProxySocket" Version="1.1.2" />
+      <PackageReference Include="Spectre.Console" Version="0.42.0" />
+    </ItemGroup>
+
+</Project>
