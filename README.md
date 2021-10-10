@@ -11,4 +11,4 @@ Spys.one Pinger
 - [Costura.Fody](https://github.com/Fody/Costura)
 
 ## About
-Expert system developing under the [MIT license](LICENSE).
+Spys.one Pinger developing under the [MIT license](LICENSE).
