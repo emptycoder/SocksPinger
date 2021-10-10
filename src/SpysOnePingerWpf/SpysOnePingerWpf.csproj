@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <UseWPF>true</UseWPF>
         <Company>SpysOnePinger</Company>
         <Product>SpysOnePinger</Product>
@@ -12,16 +12,20 @@
         <AssemblyName>SpysOnePinger</AssemblyName>
         <PackageId>SpysOnePinger</PackageId>
         <Authors>SpysOnePinger</Authors>
+        <LangVersion>9</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="CefSharp.Wpf.NETCore" Version="94.4.50" />
-      <PackageReference Include="Costura.Fody" Version="5.6.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="ProxySocket" Version="1.1.2" />
       <PackageReference Include="Spectre.Console" Version="0.42.0" />
+      <PackageReference Remove="chromiumembeddedframework.runtime.win-x86" />
+      <PackageReference Remove="chromiumembeddedframework.runtime.win-arm64" />
+      <PackageReference Remove="chromiumembeddedframework.runtime.win-arm64" />
+      <PackageReference Remove="chromiumembeddedframework.runtime.win-x86" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Socks5\Socks5.csproj" />
     </ItemGroup>
 
 </Project>
