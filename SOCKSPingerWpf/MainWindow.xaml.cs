@@ -50,7 +50,7 @@ namespace SOCKSPingerWpf
             
             if (!_lockFlag) return;
             
-            AnsiConsole.WriteLine($"---!>Found ips and ports: {count.ToString()}");
+            AnsiConsole.WriteLine($"Found ips and ports: {count.ToString()}");
             
             lock (this)
             {
@@ -65,7 +65,7 @@ namespace SOCKSPingerWpf
         private static void Iterate(ProgressContext context)
         {
             Action<object> pingAndAdd = PingAndAdd;
-            Console.WriteLine("---!>Start pinging...");
+            Console.WriteLine("Start pinging...");
             _uiTask = context.AddTask("Pinging");
 
             _workingProxies = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "proxies.txt"));
