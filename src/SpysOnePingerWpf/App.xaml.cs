@@ -1,7 +1,12 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
+using CefSharp;
+using CefSharp.Wpf;
 using SpysOnePingerWpf.Extensions;
 
 namespace SpysOnePingerWpf
@@ -23,8 +28,9 @@ namespace SpysOnePingerWpf
         static App()
         {
             AllocConsole();
+            CefSharp.Wpf.ChromiumWebBrowser r = new ChromiumWebBrowser();
 
-            // AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+            AppDomain.CurrentDomain.AssemblyResolve += Resolver;
             // InitializeCefSharp();
         }
         
@@ -41,18 +47,18 @@ namespace SpysOnePingerWpf
   //
 	 //        Cef.Initialize(settings, performDependencyCheck: false, browserProcessHandler: null);
   //       }
-  //
-  //       private static Assembly Resolver(object sender, ResolveEventArgs args)
-  //       {
-	 //        if (!Environment.Is64BitProcess) throw new Exception("Not supported!");
-	 //        if (!args.Name.StartsWith("CefSharp")) return null;
-	 //        string runtimesPath = Path.Combine(ApplicationPath, "runtimes", "win-x64");
-  //
-	 //        var assemblyName = $"{args.Name.Split(',', 2)[0]}.dll";
-  //           var archSpecificPath = Path.Combine(runtimesPath, "lib", "netcoreapp3.1", assemblyName);
-  //
-  //           return File.Exists(archSpecificPath)? Assembly.LoadFile(archSpecificPath) : null;
-  //       }
+  
+        private static Assembly Resolver(object sender, ResolveEventArgs args)
+        {
+	        if (!Environment.Is64BitProcess) throw new Exception("Not supported!");
+	        if (!args.Name.StartsWith("CefSharp")) return null;
+	        string runtimesPath = Path.Combine(ApplicationPath, "runtimes", "win-x64");
+  
+	        var assemblyName = $"{args.Name.Split(',', 2)[0]}.dll";
+            var archSpecificPath = Path.Combine(runtimesPath, "lib", "netcoreapp3.1", assemblyName);
+  
+            return File.Exists(archSpecificPath)? Assembly.LoadFile(archSpecificPath) : null;
+        }
 
   private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) =>
 	  e.Exception.Log();

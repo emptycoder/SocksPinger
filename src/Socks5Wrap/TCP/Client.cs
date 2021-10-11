@@ -60,7 +60,7 @@ namespace Socks5Wrap.TCP
                 DataEventArgs data = new DataEventArgs(this, buffer, received);
                 this.onDataReceived(this, data);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 #if DEBUG
  #if DEBUG
@@ -85,7 +85,7 @@ namespace Socks5Wrap.TCP
                 //this.onDataReceived(this, dargs);
                 return received;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 #if DEBUG
   Console.WriteLine(ex.ToString()); 
@@ -106,7 +106,7 @@ namespace Socks5Wrap.TCP
                 Receiving = true;
                 Sock.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(DataReceived), Sock);
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 #if DEBUG
  Console.WriteLine(ex.ToString()); 
@@ -152,7 +152,7 @@ namespace Socks5Wrap.TCP
                 DataEventArgs data = new DataEventArgs(this, new byte[0] {}, sent);
                 this.onDataSent(this, data);
             }
-            catch (Exception ex) {
+            catch (Exception) {
 #if DEBUG
  Console.WriteLine(ex.ToString()); 
 #endif 
@@ -173,7 +173,7 @@ namespace Socks5Wrap.TCP
                     this.Sock.BeginSend(buff, offset, count, SocketFlags.None, new AsyncCallback(DataSent), this.Sock);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 #if DEBUG
  Console.WriteLine(ex.ToString()); 
@@ -199,7 +199,7 @@ namespace Socks5Wrap.TCP
                 }
                 return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 #if DEBUG
  #if DEBUG

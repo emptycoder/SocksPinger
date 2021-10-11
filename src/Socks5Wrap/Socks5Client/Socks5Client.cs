@@ -143,7 +143,6 @@ namespace Socks5Wrap.Socks5Client
                         return true;
                     }
                 }
-                return true;
             }
             catch (Exception ex)
             {
