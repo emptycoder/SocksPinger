@@ -1,8 +1,8 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
+using SpysOnePingerWpf.Extensions;
 
 namespace SpysOnePingerWpf
 {
@@ -11,7 +11,7 @@ namespace SpysOnePingerWpf
     /// </summary>
     public partial class App
     {
-	    private static readonly string ApplicationPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase ??
+	    internal static readonly string ApplicationPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase ??
 	                                                     Environment.CurrentDirectory;
 
 	    [DllImport("Kernel32")]
@@ -54,12 +54,8 @@ namespace SpysOnePingerWpf
   //           return File.Exists(archSpecificPath)? Assembly.LoadFile(archSpecificPath) : null;
   //       }
 
-	    private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-	    {
-		    using var streamWriter = new StreamWriter(Path.Combine(ApplicationPath, "release.log"));
-		    streamWriter.WriteLine(e.Exception);
-		    streamWriter.Close();
-	    }
-        private void Application_Exit(object sender, ExitEventArgs e) => FreeConsole();
+  private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) =>
+	  e.Exception.Log();
+	    private void Application_Exit(object sender, ExitEventArgs e) => FreeConsole();
     }
 }

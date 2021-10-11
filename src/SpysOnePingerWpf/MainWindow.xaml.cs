@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using CefSharp;
-using Socks5;
+using Socks5Wrap.Socks5Client;
 using Spectre.Console;
+using SpysOnePingerWpf.Extensions;
 
 namespace SpysOnePingerWpf
 {
@@ -16,104 +14,94 @@ namespace SpysOnePingerWpf
     /// </summary>
     public partial class MainWindow
     {
-        private static readonly CancellationTokenSource CancellationToken = new();
+        private static readonly Settings Settings = new(Path.Combine(App.ApplicationPath, "settings.json"));
         private static readonly Regex IpPort = new(
             "(?<=<font class=\"spy14\">)[\\d]*\\.[\\d]*\\.[\\d]*\\.[\\d]*|(?<=<font class=\"spy2\">:</font>)[\\d]*",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Func<Socket> Socks5Factory =
-            () => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        
+        private static readonly (string, int) PingAddress = Settings.Get<string>("pingAddress").ParseEndPoint();
         private static MatchCollection _matchCollection;
-        private static ProgressTask _uiTask;
-        private static StreamWriter _workingProxies;
 
-        private bool _lockFlag = true;
+        private bool _lockFlag;
         public MainWindow() => InitializeComponent();
 
         private async void Browser_OnFrameLoadEnd(object sender, FrameLoadEndEventArgs e)
         {
             const int defaultIpPortsCount = 30;
             const int separatedDefaultIpPortsCount = defaultIpPortsCount * 2;
-            
-            const int realIpPortsCount = 500;
-            const int separatedRealIpPortsCount = realIpPortsCount * 2;
-            
+
+            int separatedRealIpPortsCount = Settings.Get<string>("xpp") switch
+            {
+                "0" => 30,
+                "1" => 50,
+                "2" => 100,
+                "3" => 200,
+                "4" => 300,
+                "5" => 500,
+                _ => throw new ArgumentOutOfRangeException($"XPP Argument exception")
+            } * 2;
+
             var result = await Browser.GetSourceAsync();
             
             if (string.IsNullOrWhiteSpace(result)) return;
-            _matchCollection = IpPort.Matches(result);
-            var count = _matchCollection.Count;
+            var matchCollection = IpPort.Matches(result);
+            var count = matchCollection.Count;
             if (count == separatedDefaultIpPortsCount)
+            {
                 // HACK: Can't send POST request on server using Browser.LoadUrlWithPostData
                 Browser.ExecuteScriptAsync(
-                    "document.getElementById('xpp').value = '5'; document.querySelector('form[method=\"post\"]').submit()");
+                    $"document.getElementById('xpp').value = '{Settings.Get<string>("xpp")}'; document.querySelector('form[method=\"post\"]').submit()");
+                return;
+            }
             
             lock (this)
             {
-                if (!_lockFlag) return;
-                AnsiConsole.WriteLine($"Found ips and ports: {count.ToString()}");
+                if (_lockFlag && count != separatedRealIpPortsCount) return;
+                AnsiConsole.WriteLine($"Find proxies: {count.ToString()}");
                 
-                if (count != separatedRealIpPortsCount) return;
-                
-                _lockFlag = false;
-                AnsiConsole.Progress().Start(Iterate);
+                _lockFlag = true;
+                _matchCollection = matchCollection;
+                AnsiConsole.Progress().Start(CreateTasks);
             }
         }
 
-        private static void Iterate(ProgressContext context)
+        private static void CreateTasks(ProgressContext context)
         {
-            Action<object> pingAndAdd = PingAndAdd;
             AnsiConsole.WriteLine("Start pinging...");
-            _uiTask = context.AddTask("Pinging");
+            var uiTask = context.AddTask("Pinging");
 
-            _workingProxies = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "proxies.txt"));
-            
-            var tasks = new Task[_matchCollection.Count / 2];
+            var tasks = new (IAsyncResult, string)[_matchCollection.Count / 2];
             for (int index = 0; index < _matchCollection.Count; index += 2)
             {
                 try
                 {
-                    tasks[index / 2] = Task.Factory.StartNew(pingAndAdd, index, CancellationToken.Token);
-                    CancellationToken.CancelAfter(2000);
+                    var client = new Socks5Client(_matchCollection[index].Value,
+                        Convert.ToInt32(_matchCollection[index + 1].Value),
+                        PingAddress.Item1,
+                        PingAddress.Item2);
+                    client.OnConnected += (_, _) =>
+                    {
+                        client.Client.Disconnect();
+                        client.Client.Dispose();
+                        uiTask.Increment(100 / (_matchCollection.Count / 2.0));
+                    };
+                    tasks[index / 2] = (client.ConnectAsync(), $"{_matchCollection[index].Value}:{_matchCollection[index + 1].Value}");
                 }
-                catch (TaskCanceledException) { }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e);
-                    Console.ReadKey();
+                    ex.Log();
                 }
             }
 
-            Task.WaitAll(tasks);
-            _workingProxies.Close();
-            _workingProxies.Dispose();
-
-            Application.Current.Shutdown();
-        }
-
-        private static async void PingAndAdd(object state)
-        {
-            int index = (int) state;
-            string ip = _matchCollection[index].Value;
-            int port = Convert.ToInt32(_matchCollection[index + 1].Value);
-
-            try
+            using var streamWriter = new StreamWriter(Settings.Get<string>("outputPath"));
+            foreach (var (asyncResult, ipPort) in tasks)
             {
-                var socket = await Socks5Proxy.Connect(Socks5Factory,
-                    new Socks5Options(ip, port, "www.google.com", 80));
-                socket.Disconnect(false);
-                socket.Dispose();
+                asyncResult.AsyncWaitHandle.WaitOne();
+                if (asyncResult.IsCompleted)
+                    streamWriter.WriteLine(ipPort);
+            }
+            streamWriter.Close();
 
-                await _workingProxies.WriteLineAsync($"{ip}:{port.ToString()}");
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-            finally
-            {
-                _uiTask.Increment(100 / (_matchCollection.Count / 2.0));
-            }
+            Application.Current.Dispatcher.Invoke(() => Application.Current.Shutdown());
         }
     }
 }
