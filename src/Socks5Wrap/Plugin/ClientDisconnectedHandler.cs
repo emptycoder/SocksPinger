@@ -20,7 +20,7 @@ using Socks5Wrap.TCP;
 
 namespace Socks5Wrap.Plugin
 {
-    public abstract class ClientDisconnectedHandler : GenericPlugin
+    public abstract class ClientDisconnectedHandler : IGenericPlugin
     {
         public abstract bool OnStart();
         /// <summary>

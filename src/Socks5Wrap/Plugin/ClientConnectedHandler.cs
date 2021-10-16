@@ -21,15 +21,15 @@ using Socks5Wrap.TCP;
 
 namespace Socks5Wrap.Plugin
 {
-    public abstract class ClientConnectedHandler : GenericPlugin
+    public abstract class ClientConnectedHandler : IGenericPlugin
     {
         public abstract bool OnStart();
         /// <summary>
         /// Handle client connected callback. Useful for IPblocking.
         /// </summary>
-        /// <param name="Client"></param>
+        /// <param name="client"></param>
         /// <returns>Return true to allow the connection, return false to deny it.</returns>
-        public abstract bool OnConnect(Client Client, IPEndPoint IP);
+        public abstract bool OnConnect(Client client, IPEndPoint ip);
         public abstract bool Enabled { get; set; }
     }
 }

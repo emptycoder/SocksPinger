@@ -13,6 +13,7 @@
         <PackageId>SpysOnePinger</PackageId>
         <Authors>SpysOnePinger</Authors>
         <LangVersion>9</LangVersion>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>

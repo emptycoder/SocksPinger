@@ -25,32 +25,32 @@ namespace Socks5Wrap.TCP
 {
     public class TcpServer
     {
-        private TcpListener p;
-        private bool accept = false;
+        private TcpListener _p;
+        private bool _accept;
         public int PacketSize{get;set;}
 
-        public event EventHandler<ClientEventArgs> onClientConnected = delegate { };
-        public event EventHandler<ClientEventArgs> onClientDisconnected = delegate { };
+        public event EventHandler<ClientEventArgs> OnClientConnected = delegate { };
+        public event EventHandler<ClientEventArgs> OnClientDisconnected = delegate { };
 
         //public event EventHandler<DataEventArgs> onDataReceived = delegate { };
         //public event EventHandler<DataEventArgs> onDataSent = delegate { };
 
         public TcpServer(IPAddress ip, int port)
         {
-            p = new TcpListener(ip, port);
+            _p = new TcpListener(ip, port);
         }
 
-        private ManualResetEvent Task = new ManualResetEvent(false);
+        private ManualResetEvent _task = new ManualResetEvent(false);
 
         private void AcceptConnections()
         {
-            while(accept)
+            while(_accept)
             {
                 try
                 {
-                    Task.Reset();
-                    p.BeginAcceptSocket(new AsyncCallback(AcceptClient), p);
-                    Task.WaitOne();
+                    _task.Reset();
+                    _p.BeginAcceptSocket(new AsyncCallback(AcceptClient), _p);
+                    _task.WaitOne();
                 }
                 catch { //error, most likely server shutdown.
                 }
@@ -63,12 +63,12 @@ namespace Socks5Wrap.TCP
             {
                 TcpListener px = (TcpListener)res.AsyncState;
                 Socket x = px.EndAcceptSocket(res);
-                Task.Set();
+                _task.Set();
                 Client f = new Client(x, PacketSize);
                 //f.onClientDisconnected += onClientDisconnected;
                 //f.onDataReceived += onDataReceived;
                 //f.onDataSent += onDataSent;
-                onClientConnected(this, new ClientEventArgs(f));
+                OnClientConnected(this, new ClientEventArgs(f));
             }
             catch(Exception ex)
             {
@@ -79,21 +79,21 @@ namespace Socks5Wrap.TCP
 
         public void Start()
         {
-            if (!accept)
+            if (!_accept)
             {
-                accept = true;
-                p.Start(10000);               
+                _accept = true;
+                _p.Start(10000);               
                 new Thread(new ThreadStart(AcceptConnections)).Start();
             }
         }
 
         public void Stop()
         {
-            if (accept)
+            if (_accept)
             {
-                accept = false;
-                p.Stop();
-                Task.Set();
+                _accept = false;
+                _p.Stop();
+                _task.Set();
             }
         }
     }

@@ -27,13 +27,13 @@ namespace Socks5Wrap.TCP
         /// </summary>
         class MiniCounter
         {
-            public ulong bytes = 0;
-            public ulong kbytes = 0;
-            public ulong mbytes = 0;
-            public ulong gbytes = 0;
-            public ulong tbytes = 0;
-            public ulong pbytes = 0;
-            DateTime lastRead = DateTime.Now;
+            public ulong Bytes;
+            public ulong Kbytes;
+            public ulong Mbytes;
+            public ulong Gbytes;
+            public ulong Tbytes;
+            public ulong Pbytes;
+            DateTime _lastRead = DateTime.Now;
 
             /// <summary>
             /// Adds bits(total misnomer because bits per second looks a lot better than bytes per second)
@@ -41,68 +41,68 @@ namespace Socks5Wrap.TCP
             /// <param name="count">The number of bits to add</param>
             public void AddBytes(ulong count)
             {
-                bytes += count;
-                while (bytes > 1024)
+                Bytes += count;
+                while (Bytes > 1024)
                 {
-                    kbytes++;
-                    bytes -= 1024;
+                    Kbytes++;
+                    Bytes -= 1024;
                 }
-                while (kbytes > 1024)
+                while (Kbytes > 1024)
                 {
-                    mbytes++;
-                    kbytes -= 1024;
+                    Mbytes++;
+                    Kbytes -= 1024;
                 }
-                while (mbytes > 1024)
+                while (Mbytes > 1024)
                 {
-                    gbytes++;
-                    mbytes -= 1024;
+                    Gbytes++;
+                    Mbytes -= 1024;
                 }
-                while (gbytes > 1024)
+                while (Gbytes > 1024)
                 {
-                    tbytes++;
-                    gbytes -= 1024;
+                    Tbytes++;
+                    Gbytes -= 1024;
                 }
-                while (tbytes > 1024)
+                while (Tbytes > 1024)
                 {
-                    pbytes++;
-                    tbytes -= 1024;
+                    Pbytes++;
+                    Tbytes -= 1024;
                 }
             }
 
 
             public ulong BytesPerSec()
             {
-                if (gbytes > 0)
+                if (Gbytes > 0)
                 {
-                    double ret = (double)gbytes + ((double)((double)mbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Gbytes + ((double)((double)Mbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
                     
                     return (ulong)(((ret * 1024) * 1024) * 1024);
                 }
-                else if (mbytes > 0)
+                else if (Mbytes > 0)
                 {
-                    double ret = (double)mbytes + ((double)((double)kbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Mbytes + ((double)((double)Kbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
 
                     return (ulong)((ret * 1024) * 1024);
                 }
-                else if (kbytes > 0)
+                else if (Kbytes > 0)
                 {
-                    double ret = (double)kbytes + ((double)((double)bytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
-                    lastRead = DateTime.Now;
+                    double ret = (double)Kbytes + ((double)((double)Bytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
+                    _lastRead = DateTime.Now;
 
                     return (ulong)(ret * 1024);
                 }
                 else
                 {
-                    double ret = bytes;
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
-                    lastRead = DateTime.Now;
+                    double ret = Bytes;
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
+                    _lastRead = DateTime.Now;
 
                     return (ulong)ret;
                 }
@@ -114,55 +114,55 @@ namespace Socks5Wrap.TCP
             /// <returns></returns>
             public override string ToString()
             {
-                if (pbytes > 0)
+                if (Pbytes > 0)
                 {
-                    double ret = (double)pbytes + ((double)((double)tbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Pbytes + ((double)((double)Tbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
                     return s + " PB";
                 }
-                else if (tbytes > 0)
+                else if (Tbytes > 0)
                 {
-                    double ret = (double)tbytes + ((double)((double)gbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Tbytes + ((double)((double)Gbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
                     return s + " TB";
                 }
-                else if (gbytes > 0)
+                else if (Gbytes > 0)
                 {
-                    double ret = (double)gbytes + ((double)((double)mbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Gbytes + ((double)((double)Mbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
                     return s + " GB";
                 }
-                else if (mbytes > 0)
+                else if (Mbytes > 0)
                 {
-                    double ret = (double)mbytes + ((double)((double)kbytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
+                    double ret = (double)Mbytes + ((double)((double)Kbytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
 
-                    lastRead = DateTime.Now;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
                     return s + " MB";
                 }
-                else if (kbytes > 0)
+                else if (Kbytes > 0)
                 {
-                    double ret = (double)kbytes + ((double)((double)bytes / 1024));
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
-                    lastRead = DateTime.Now;
+                    double ret = (double)Kbytes + ((double)((double)Bytes / 1024));
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
@@ -170,9 +170,9 @@ namespace Socks5Wrap.TCP
                 }
                 else
                 {
-                    double ret = bytes;
-                    ret = ret / (DateTime.Now - lastRead).TotalSeconds;
-                    lastRead = DateTime.Now;
+                    double ret = Bytes;
+                    ret = ret / (DateTime.Now - _lastRead).TotalSeconds;
+                    _lastRead = DateTime.Now;
                     string s = ret.ToString();
                     if (s.Length > 6)
                         s = s.Substring(0, 6);
@@ -181,13 +181,13 @@ namespace Socks5Wrap.TCP
             }
         }
 
-        private ulong bytes = 0;
-        private ulong kbytes = 0;
-        private ulong mbytes = 0;
-        private ulong gbytes = 0;
-        private ulong tbytes = 0;
-        private ulong pbytes = 0;
-        MiniCounter perSecond = new MiniCounter();
+        private ulong _bytes;
+        private ulong _kbytes;
+        private ulong _mbytes;
+        private ulong _gbytes;
+        private ulong _tbytes;
+        private ulong _pbytes;
+        MiniCounter _perSecond = new MiniCounter();
 
         /// <summary>
         /// Empty constructor, because thats constructive
@@ -203,15 +203,15 @@ namespace Socks5Wrap.TCP
         /// <returns></returns>
         public string GetPerSecond()
         {
-            string s = perSecond.ToString() + "/s";
-            perSecond = new MiniCounter();
+            string s = _perSecond.ToString() + "/s";
+            _perSecond = new MiniCounter();
             return s;
         }
 
         public ulong GetPerSecondNumeric()
         {
-            ulong val = perSecond.BytesPerSec();
-            perSecond = new MiniCounter();
+            ulong val = _perSecond.BytesPerSec();
+            _perSecond = new MiniCounter();
             return val;
         }
 
@@ -222,32 +222,32 @@ namespace Socks5Wrap.TCP
         public void AddBytes(ulong count)
         {
             // overflow max
-            perSecond.AddBytes(count);
-            bytes += count;
-            while (bytes > 1024)
+            _perSecond.AddBytes(count);
+            _bytes += count;
+            while (_bytes > 1024)
             {
-                kbytes++;
-                bytes -= 1024;
+                _kbytes++;
+                _bytes -= 1024;
             }
-            while (kbytes > 1024)
+            while (_kbytes > 1024)
             {
-                mbytes++;
-                kbytes -= 1024;
+                _mbytes++;
+                _kbytes -= 1024;
             }
-            while (mbytes > 1024)
+            while (_mbytes > 1024)
             {
-                gbytes++;
-                mbytes -= 1024;
+                _gbytes++;
+                _mbytes -= 1024;
             }
-            while (gbytes > 1024)
+            while (_gbytes > 1024)
             {
-                tbytes++;
-                gbytes -= 1024;
+                _tbytes++;
+                _gbytes -= 1024;
             }
-            while (tbytes > 1024)
+            while (_tbytes > 1024)
             {
-                pbytes++;
-                tbytes -= 1024;
+                _pbytes++;
+                _tbytes -= 1024;
             }
         }
 
@@ -257,43 +257,43 @@ namespace Socks5Wrap.TCP
         /// <returns></returns>
         public override string ToString()
         {
-            if (pbytes > 0)
+            if (_pbytes > 0)
             {
-                double ret = (double)pbytes + ((double)((double)tbytes / 1024));
+                double ret = (double)_pbytes + ((double)((double)_tbytes / 1024));
                 string s = ret.ToString();
                 if (s.Length > 6)
                     s = s.Substring(0, 6);
                 return s + " Pb";
             }
-            else if (tbytes > 0)
+            else if (_tbytes > 0)
             {
-                double ret = (double)tbytes + ((double)((double)gbytes / 1024));
+                double ret = (double)_tbytes + ((double)((double)_gbytes / 1024));
 
                 string s = ret.ToString();
                 if (s.Length > 6)
                     s = s.Substring(0, 6);
                 return s + " TB";
             }
-            else if (gbytes > 0)
+            else if (_gbytes > 0)
             {
-                double ret = (double)gbytes + ((double)((double)mbytes / 1024));
+                double ret = (double)_gbytes + ((double)((double)_mbytes / 1024));
                 string s = ret.ToString();
                 if (s.Length > 6)
                     s = s.Substring(0, 6);
                 return s + " GB";
             }
-            else if (mbytes > 0)
+            else if (_mbytes > 0)
             {
-                double ret = (double)mbytes + ((double)((double)kbytes / 1024));
+                double ret = (double)_mbytes + ((double)((double)_kbytes / 1024));
 
                 string s = ret.ToString();
                 if (s.Length > 6)
                     s = s.Substring(0, 6);
                 return s + " MB";
             }
-            else if (kbytes > 0)
+            else if (_kbytes > 0)
             {
-                double ret = (double)kbytes + ((double)((double)bytes / 1024));
+                double ret = (double)_kbytes + ((double)((double)_bytes / 1024));
 
                 string s = ret.ToString();
                 if (s.Length > 6)
@@ -302,7 +302,7 @@ namespace Socks5Wrap.TCP
             }
             else
             {
-                string s = bytes.ToString();
+                string s = _bytes.ToString();
                 if (s.Length > 6)
                     s = s.Substring(0, 6);
                 return s + " b";

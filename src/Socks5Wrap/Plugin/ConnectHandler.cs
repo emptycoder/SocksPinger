@@ -20,15 +20,15 @@ using Socks5Wrap.Socks;
 
 namespace Socks5Wrap.Plugin
 {
-    public abstract class ConnectHandler : GenericPlugin
+    public abstract class ConnectHandler : IGenericPlugin
     {
         public abstract bool OnStart();
         /// <summary>
         /// Handle request callback.
         /// </summary>
-        /// <param name="Request"></param>
+        /// <param name="request"></param>
         /// <returns>Return true to allow the connection, return false to deny it.</returns>
-        public abstract bool OnConnect(SocksRequest Request);
+        public abstract bool OnConnect(SocksRequest request);
         public abstract bool Enabled { get; set; }
     }
 }

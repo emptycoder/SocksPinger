@@ -27,24 +27,24 @@ namespace Socks5Wrap.ExamplePlugins
             return true;
         }
 
-        public override bool OnConnect(TCP.Client Client, System.Net.IPEndPoint IP)
+        public override bool OnConnect(TCP.Client client, System.Net.IPEndPoint ip)
         {
-            if (IP.Address.ToString() != "127.0.0.1")
+            if (ip.Address.ToString() != "127.0.0.1")
                 //deny the connection.
                 return false;
             return true;
             //With this function you can also Modify the Socket, as it's stored in e.Client.Sock.
         }
-        private bool enabled = false;
+        private bool _enabled;
         public override bool Enabled
         {
             get
             {
-                return enabled;
+                return _enabled;
             }
             set
             {
-                enabled = value;
+                _enabled = value;
             }
         }
     }

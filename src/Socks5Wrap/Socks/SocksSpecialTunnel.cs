@@ -34,24 +34,24 @@ namespace Socks5Wrap.Socks
         public SocksClient Client;
         public Client RemoteClient;
 
-        private List<DataHandler> Plugins = new List<DataHandler>();
+        private List<DataHandler> _plugins = new List<DataHandler>();
 
-        private int Timeout = 10000;
-        private int PacketSize = 4096;
-        private SocksEncryption se;
+        private int _timeout = 10000;
+        private int _packetSize = 4096;
+        private SocksEncryption _se;
 
         public SocksSpecialTunnel(SocksClient p, SocksEncryption ph, SocksRequest req, SocksRequest req1, int packetSize, int timeout)
         {
-            RemoteClient = new Client(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), PacketSize);
+            RemoteClient = new Client(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), _packetSize);
             Client = p;
             Req = req;
             ModifiedReq = req1;
-            PacketSize = packetSize;
-            Timeout = timeout;
-            se = ph; 
+            _packetSize = packetSize;
+            _timeout = timeout;
+            _se = ph; 
         }
 
-        public void Open(IPAddress outboundIP)
+        public void Open(IPAddress outboundIp)
         {
             if (ModifiedReq.Address == null || ModifiedReq.Port <= -1) { Client.Client.Disconnect(); return; }
 #if DEBUG
@@ -70,7 +70,7 @@ namespace Socks5Wrap.Socks
                         byte[] shit = Req.GetData(true);
                         shit[1] = 0x00;
                         //process packet.
-                        byte[] output = se.ProcessOutputData(shit, 0, shit.Length);
+                        byte[] output = _se.ProcessOutputData(shit, 0, shit.Length);
                         //gucci let's go.
                         Client.Client.Send(output);
                         ConnectHandler(null);
@@ -78,10 +78,10 @@ namespace Socks5Wrap.Socks
                     }
                 }
             }
-            var socketArgs = new SocketAsyncEventArgs { RemoteEndPoint = new IPEndPoint(ModifiedReq.IP, ModifiedReq.Port) };
+            var socketArgs = new SocketAsyncEventArgs { RemoteEndPoint = new IPEndPoint(ModifiedReq.Ip, ModifiedReq.Port) };
             socketArgs.Completed += socketArgs_Completed;
             RemoteClient.Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            RemoteClient.Sock.Bind(new IPEndPoint(outboundIP, 0));
+            RemoteClient.Sock.Bind(new IPEndPoint(outboundIp, 0));
             if (!RemoteClient.Sock.ConnectAsync(socketArgs))
                 ConnectHandler(socketArgs);
         }
@@ -99,7 +99,7 @@ namespace Socks5Wrap.Socks
                 request[1] = 0x00;
             }
 
-            byte[] encreq = se.ProcessOutputData(request, 0, request.Length);
+            byte[] encreq = _se.ProcessOutputData(request, 0, request.Length);
             Client.Client.Send(encreq);
 
             switch (e.LastOperation)
@@ -120,11 +120,11 @@ namespace Socks5Wrap.Socks
                 Client.Client.Sock.ReceiveBufferSize = 4200;
                 Client.Client.Sock.SendBufferSize = 4200;
                 foreach (DataHandler data in PluginLoader.LoadPlugin(typeof(DataHandler)))
-                    Plugins.Push(data);
-                Client.Client.onDataReceived += Client_onDataReceived;
-                RemoteClient.onDataReceived += RemoteClient_onDataReceived;
-                RemoteClient.onClientDisconnected += RemoteClient_onClientDisconnected;
-                Client.Client.onClientDisconnected += Client_onClientDisconnected;
+                    _plugins.Push(data);
+                Client.Client.OnDataReceived += Client_onDataReceived;
+                RemoteClient.OnDataReceived += RemoteClient_onDataReceived;
+                RemoteClient.OnClientDisconnected += RemoteClient_onClientDisconnected;
+                Client.Client.OnClientDisconnected += Client_onClientDisconnected;
                 Client.Client.ReceiveAsync();
                 RemoteClient.ReceiveAsync();
             }
@@ -132,14 +132,14 @@ namespace Socks5Wrap.Socks
             {
             }
         }
-        bool disconnected = false;
+        bool _disconnected;
         void Client_onClientDisconnected(object sender, ClientEventArgs e)
         {
 #if DEBUG
             Console.WriteLine("Client DC'd");
 #endif
-            if (disconnected) return;
-            disconnected = true;
+            if (_disconnected) return;
+            _disconnected = true;
             RemoteClient.Disconnect();
         }
 
@@ -156,13 +156,13 @@ namespace Socks5Wrap.Socks
 
         void RemoteClient_onDataReceived(object sender, DataEventArgs e)
         {
-            e.Request = this.ModifiedReq;
+            e.Request = ModifiedReq;
             try
             {
-                foreach (DataHandler f in Plugins)
+                foreach (DataHandler f in _plugins)
 	                f.OnServerDataReceived(this, e);
                 //craft headers & shit.
-                byte[] outputdata = se.ProcessOutputData(e.Buffer, e.Offset, e.Count);
+                byte[] outputdata = _se.ProcessOutputData(e.Buffer, e.Offset, e.Count);
                 byte[] datatosend = new byte[outputdata.Length + 4];
                 Buffer.BlockCopy(outputdata, 0, datatosend, 4, outputdata.Length);
                 Buffer.BlockCopy(BitConverter.GetBytes(outputdata.Length), 0, datatosend, 0, 4);
@@ -182,7 +182,7 @@ namespace Socks5Wrap.Socks
 
         void Client_onDataReceived(object sender, DataEventArgs e)
         {
-            e.Request = this.ModifiedReq;
+            e.Request = ModifiedReq;
             //this should be packet header.
             try
             {
@@ -190,13 +190,13 @@ namespace Socks5Wrap.Socks
                 byte[] newbuff = new byte[packetsize];
                 //yey
                 //process packet.
-                byte[] output = se.ProcessInputData(e.Buffer, 4, packetsize);
+                byte[] output = _se.ProcessInputData(e.Buffer, 4, packetsize);
                 e.Buffer = null;
                 e.Buffer = output;
                 e.Offset = 0;
                 e.Count = output.Length;
                 //receive full packet.
-                foreach (DataHandler f in Plugins)
+                foreach (DataHandler f in _plugins)
                     f.OnClientDataReceived(this, e);
                 RemoteClient.SendAsync(e.Buffer, e.Offset, e.Count);
                 if (!Client.Client.Receiving)

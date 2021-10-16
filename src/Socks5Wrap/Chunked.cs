@@ -6,8 +6,8 @@ namespace Socks5Wrap
     //WARNING: BETA - Doesn't work as well as intended. Use at your own discretion.
     public class Chunked
     {
-        private byte[] totalbuff;
-        private byte[] finalbuff;
+        private byte[] _totalbuff;
+        private byte[] _finalbuff;
         /// <summary>
         /// Create a new instance of chunked.
         /// </summary>
@@ -27,40 +27,40 @@ namespace Socks5Wrap
                 if (totallen > 0)
                 {
                     //start a while loop and receive till end of chunk.
-                    totalbuff = new byte[65535];
-                    finalbuff = new byte[size];
+                    _totalbuff = new byte[65535];
+                    _finalbuff = new byte[size];
                     //remove chunk data before adding.
                     oldbuffer = oldbuffer.ReplaceBetween(endofheader + 4, endofchunked + 2, new byte[] { });
-                    Buffer.BlockCopy(oldbuffer, 0, finalbuff, 0, size);
+                    Buffer.BlockCopy(oldbuffer, 0, _finalbuff, 0, size);
                     if (f.Connected)
                     {
                         int totalchunksize = 0;
-                        int received = f.Receive(totalbuff, 0, totalbuff.Length, SocketFlags.None);
-                        while ((totalchunksize = GetChunkSize(totalbuff, received)) != -1)
+                        int received = f.Receive(_totalbuff, 0, _totalbuff.Length, SocketFlags.None);
+                        while ((totalchunksize = GetChunkSize(_totalbuff, received)) != -1)
                         {
                             //add data to final byte buffer.
-                            byte[] chunkedData = GetChunkData(totalbuff, received);
-                            byte[] tempData = new byte[chunkedData.Length + finalbuff.Length];
+                            byte[] chunkedData = GetChunkData(_totalbuff, received);
+                            byte[] tempData = new byte[chunkedData.Length + _finalbuff.Length];
                             //get data AFTER chunked response.
-                            Buffer.BlockCopy(finalbuff, 0, tempData, 0, finalbuff.Length);
-                            Buffer.BlockCopy(chunkedData, 0, tempData, finalbuff.Length, chunkedData.Length);
+                            Buffer.BlockCopy(_finalbuff, 0, tempData, 0, _finalbuff.Length);
+                            Buffer.BlockCopy(chunkedData, 0, tempData, _finalbuff.Length, chunkedData.Length);
                             //now add to finalbuff.
-                            finalbuff = tempData;
+                            _finalbuff = tempData;
                             //receive again.
                             if (totalchunksize == -2)
                                 break;
                             else
-                                received = f.Receive(totalbuff, 0, totalbuff.Length, SocketFlags.None);
+                                received = f.Receive(_totalbuff, 0, _totalbuff.Length, SocketFlags.None);
 
                         }
                         //end of chunk.
-                        Console.WriteLine("Got chunk! Size: {0}", finalbuff.Length);
+                        Console.WriteLine("Got chunk! Size: {0}", _finalbuff.Length);
                     }
                 }
                 else
                 {
-                    finalbuff = new byte[size];
-                    Buffer.BlockCopy(oldbuffer, 0, finalbuff, 0, size);
+                    _finalbuff = new byte[size];
+                    Buffer.BlockCopy(oldbuffer, 0, _finalbuff, 0, size);
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace Socks5Wrap
         {
             get
             {
-                return finalbuff;
+                return _finalbuff;
             }
         }
 
@@ -78,10 +78,10 @@ namespace Socks5Wrap
             get
             {
                 //get size from \r\n\r\n and past.
-                int location = finalbuff.FindString("\r\n\r\n") + 4;
+                int location = _finalbuff.FindString("\r\n\r\n") + 4;
                 //size
-                int size = finalbuff.Length - location - 7; //-7 is initial end of chunk data.
-                return finalbuff.ReplaceString("\r\n\r\n", "\r\n\r\n" + size.ToHex().Replace("0x", "") + "\r\n");
+                int size = _finalbuff.Length - location - 7; //-7 is initial end of chunk data.
+                return _finalbuff.ReplaceString("\r\n\r\n", "\r\n\r\n" + size.ToHex().Replace("0x", "") + "\r\n");
             }
         }
 
@@ -105,10 +105,10 @@ namespace Socks5Wrap
 
         public static bool IsChunked(byte[] buffer)
         {
-            return (IsHTTP(buffer) && buffer.FindString("Transfer-Encoding: chunked\r\n") != -1);
+            return (IsHttp(buffer) && buffer.FindString("Transfer-Encoding: chunked\r\n") != -1);
         }
 
-        public static bool IsHTTP(byte[] buffer)
+        public static bool IsHttp(byte[] buffer)
         {
             return (buffer.FindString("HTTP/1.1") != -1 && buffer.FindString("\r\n\r\n") != -1);
         }

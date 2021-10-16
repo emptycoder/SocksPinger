@@ -18,7 +18,7 @@
 
 namespace Socks5Wrap.Plugin
 {
-    public interface GenericPlugin
+    public interface IGenericPlugin
     {
         bool OnStart();
         bool Enabled { get; set; }

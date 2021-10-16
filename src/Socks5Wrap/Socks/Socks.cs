@@ -84,7 +84,7 @@ namespace Socks5Wrap.Socks
 				//decrypt with our public key.
 				byte[] newkey = new byte[enckeysize];
 				Buffer.BlockCopy(buffer, 0, newkey, 0, enckeysize);
-				ph.SetEncKey(ph.key.Decrypt(newkey, false));
+				ph.SetEncKey(ph.Key.Decrypt(newkey, false));
 
 				ph.SetType(AuthTypes.SocksBoth);
 				//ready up our client.
@@ -111,7 +111,7 @@ namespace Socks5Wrap.Socks
 				//decrypt with our public key.
 				byte[] newkey = new byte[enckeysize];
 				Buffer.BlockCopy(buffer, 0, newkey, 0, enckeysize);
-				ph.SetEncKey(ph.key.Decrypt(newkey, false));
+				ph.SetEncKey(ph.Key.Decrypt(newkey, false));
 				ph.SetType(AuthTypes.SocksEncrypt);
 				//ready up our client.
 				return ph;
@@ -164,7 +164,7 @@ namespace Socks5Wrap.Socks
 					string address = "";
 					switch ((AddressType)buff[3])
 					{
-					case AddressType.IP:
+					case AddressType.Ip:
 						{
 							for (int i = 4; i < 8; i++)
 							{
@@ -181,7 +181,7 @@ namespace Socks5Wrap.Socks
 							fwd += domainlen + 1;
 						}
 						break;
-					case AddressType.IPv6:
+					case AddressType.Pv6:
 						//can't handle IPV6 traffic just yet.
 						return null;
 					}
@@ -218,13 +218,13 @@ namespace Socks5Wrap.Socks
 			Address = address;
 			Port = port;
 			Error = SocksError.Granted;
-			IPAddress p = this.IP; //get Error on the stack.
+			IPAddress p = Ip; //get Error on the stack.
 		}
-		public IPAddress IP
+		public IPAddress Ip
 		{
 			get
 			{
-				if (Type == AddressType.IP)
+				if (Type == AddressType.Ip)
 				{
 					try
 					{
@@ -253,19 +253,19 @@ namespace Socks5Wrap.Socks
 				}
 			}
 		}
-		public byte[] GetData(bool NetworkToHostOrder)
+		public byte[] GetData(bool networkToHostOrder)
 		{
 			byte[] data;
 			var port = 0;
-			if(NetworkToHostOrder)
+			if(networkToHostOrder)
 				port = IPAddress.NetworkToHostOrder(Port);
 			else
 				port = IPAddress.HostToNetworkOrder((short)Port);
 
-			if (Type == AddressType.IP)
+			if (Type == AddressType.Ip)
 			{
 				data = new byte[10];
-				string[] content = IP.ToString().Split('.');
+				string[] content = Ip.ToString().Split('.');
 				for (int i = 4; i < content.Length + 4; i++)
 					data[i] = Convert.ToByte(Convert.ToInt32(content[i - 4]));
 				Buffer.BlockCopy(BitConverter.GetBytes(port), 0, data, 8, 2);
@@ -306,14 +306,14 @@ namespace Socks5Wrap.Socks
 	{
 		Stream = 0x01,
 		Bind = 0x02,
-		UDP = 0x03
+		Udp = 0x03
 	}
 
 	public enum AddressType
 	{
-		IP = 0x01,
+		Ip = 0x01,
 		Domain = 0x03,
-		IPv6 = 0x04
+		Pv6 = 0x04
 	}
 
 	public enum SocksError

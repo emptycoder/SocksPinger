@@ -33,11 +33,11 @@ namespace Socks5Wrap.ExamplePlugins
             return (user.Username == "thrdev" && user.Password == "testing1234" ? LoginStatus.Correct : LoginStatus.Denied);
         }
         //Username/Password Table? Endless possiblities for the login system.
-        private bool enabled = false;
+        private bool _enabled;
         public override bool Enabled
         {
-            get { return enabled; }
-            set { enabled = value; }
+            get { return _enabled; }
+            set { _enabled = value; }
         }
     }
 }

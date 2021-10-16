@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using SocksPingerWpf.Extensions;
 
-namespace SpysOnePingerWpf
+namespace SocksPingerWpf
 {
     public class Settings
     {
@@ -12,6 +13,9 @@ namespace SpysOnePingerWpf
 
         private void LoadSettings(string path)
         {
+            if (!File.Exists(path))
+                throw new Exception($"settings.json not found (https://github.com/emptycoder/Spys.onePinger)").Log();
+
             StreamReader streamReader = null;
             try
             {
@@ -39,6 +43,12 @@ namespace SpysOnePingerWpf
             }
         }
 
-        public T Get<T>(string key) => _entities[key].ToObject<T>();
+        public T Get<T>(string key)
+        {
+            if (_entities.TryGetValue(key, out var value) && value is not null)
+                return value.ToObject<T>();
+            
+            throw new Exception($"Value for key ({key}) not found! (https://github.com/emptycoder/Spys.onePinger)").Log();
+        }
     }
 }

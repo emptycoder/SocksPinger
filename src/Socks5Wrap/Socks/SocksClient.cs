@@ -27,7 +27,7 @@ namespace Socks5Wrap.Socks
 {
     public class SocksClient
     {
-        public event EventHandler<SocksClientEventArgs> onClientDisconnected = delegate { };
+        public event EventHandler<SocksClientEventArgs> OnClientDisconnected = delegate { };
 
         public Client Client;
         public int Authenticated { get; private set; }
@@ -35,11 +35,11 @@ namespace Socks5Wrap.Socks
         {
             Client = cli;
         }
-        private SocksRequest req1;
-        public SocksRequest Destination { get { return req1; } }
-        public void Begin(IPAddress outboundInterface, int PacketSize, int Timeout)
+        private SocksRequest _req1;
+        public SocksRequest Destination { get { return _req1; } }
+        public void Begin(IPAddress outboundInterface, int packetSize, int timeout)
         {
-            Client.onClientDisconnected += Client_onClientDisconnected;
+            Client.OnClientDisconnected += Client_onClientDisconnected;
             List<AuthTypes> authtypes = Socks5.RequestAuth(this);
             if (authtypes.Count <= 0)
             {
@@ -47,7 +47,7 @@ namespace Socks5Wrap.Socks
                 Client.Disconnect();
                 return;
             }
-            this.Authenticated = 0;
+            Authenticated = 0;
             SocksEncryption w = null;
             List<object> lhandlers = PluginLoader.LoadPlugin(typeof(LoginHandler));
             //check out different auth types, none will have no authentication, the rest do.
@@ -109,10 +109,10 @@ namespace Socks5Wrap.Socks
                 w.SetType(AuthTypes.Login);
                 SocksRequest req = Socks5.RequestTunnel(this, w);
                 if (req == null) { Client.Disconnect(); return; }
-                req1 = new SocksRequest(req.StreamType, req.Type, req.Address, req.Port);
+                _req1 = new SocksRequest(req.StreamType, req.Type, req.Address, req.Port);
                 //call on plugins for connect callbacks.
                 foreach (ConnectHandler conn in PluginLoader.LoadPlugin(typeof(ConnectHandler)))
-					if (conn.OnConnect(req1) == false)
+					if (conn.OnConnect(_req1) == false)
 					{
 						req.Error = SocksError.Failure;
 						Client.Send(req.GetData(true));
@@ -120,16 +120,16 @@ namespace Socks5Wrap.Socks
 						return;
 					}  
                 //Send Tunnel Data back.
-                SocksTunnel x = new SocksTunnel(this, req, req1, PacketSize, Timeout);
+                SocksTunnel x = new SocksTunnel(this, req, _req1, packetSize, timeout);
                 x.Open(outboundInterface);
             }
             else if (Authenticated == 2)
             {
                 SocksRequest req = Socks5.RequestTunnel(this, w);
                 if (req == null) { Client.Disconnect(); return; }
-                req1 = new SocksRequest(req.StreamType, req.Type, req.Address, req.Port);
+                _req1 = new SocksRequest(req.StreamType, req.Type, req.Address, req.Port);
                 foreach (ConnectHandler conn in PluginLoader.LoadPlugin(typeof(ConnectHandler)))
-					if (conn.OnConnect(req1) == false)
+					if (conn.OnConnect(_req1) == false)
 					{
 						req.Error = SocksError.Failure;
 						Client.Send(req.GetData(true));
@@ -137,15 +137,15 @@ namespace Socks5Wrap.Socks
 						return;
 					}  
                 //Send Tunnel Data back.
-                SocksSpecialTunnel x = new SocksSpecialTunnel(this, w, req, req1, PacketSize, Timeout);
+                SocksSpecialTunnel x = new SocksSpecialTunnel(this, w, req, _req1, packetSize, timeout);
                 x.Open(outboundInterface);
             }
         }
 
         void Client_onClientDisconnected(object sender, ClientEventArgs e)
         {
-            this.onClientDisconnected(this, new SocksClientEventArgs(this));
-            Client.onClientDisconnected -= Client_onClientDisconnected;
+            OnClientDisconnected(this, new SocksClientEventArgs(this));
+            Client.OnClientDisconnected -= Client_onClientDisconnected;
             //added to clear up memory
         }
     }
@@ -153,12 +153,12 @@ namespace Socks5Wrap.Socks
     {
         public string Username { get; private set; }
         public string Password { get; private set; }
-        public IPEndPoint IP { get; private set; }
+        public IPEndPoint Ip { get; private set; }
         public User(string un, string pw, IPEndPoint ip)
         {
             Username = un;
             Password = pw;
-            IP = ip;
+            Ip = ip;
         }
     }
 }

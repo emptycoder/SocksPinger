@@ -28,29 +28,30 @@ namespace Socks5Wrap.Socks5Client
 {
     public class Socks5Client
     {
-        private IPAddress ipAddress;
+        private IPAddress _ipAddress;
         public Client Client;
 
-        private Socket p;
-        private int Port;
-        public bool reqPass = false;
+        private Socket _p;
+        private int _port;
+        public bool ReqPass;
+        public bool SmthReceived { get; private set; }
 
-        private byte[] HalfReceiveBuffer = new byte[4200];
-        private int HalfReceivedBufferLength = 0;
+        private byte[] _halfReceiveBuffer = new byte[4200];
+        private int _halfReceivedBufferLength;
 
-        private string Username;
-        private string Password;
-        private string Dest;
-        private int Destport;
+        private string _username;
+        private string _password;
+        private string _dest;
+        private int _destport;
 
-        public Encryption.SocksEncryption enc;
+        public Encryption.SocksEncryption Enc;
 
         public IList<AuthTypes> UseAuthTypes { get; set; }
 
-        public event EventHandler<Socks5ClientArgs> OnConnected = delegate { };
-        public event EventHandler<Socks5ClientDataArgs> OnDataReceived = delegate { };
-        public event EventHandler<Socks5ClientDataArgs> OnDataSent = delegate { };
-        public event EventHandler<Socks5ClientArgs> OnDisconnected = delegate { };
+        public event EventHandler<Socks5ClientArgs> OnConnectedEvent = delegate { };
+        public event EventHandler<Socks5ClientDataArgs> OnDataReceivedEvent = delegate { };
+        public event EventHandler<Socks5ClientDataArgs> OnDataSentEvent = delegate { };
+        public event EventHandler<Socks5ClientArgs> OnDisconnectedEvent = delegate { };
 
         private Socks5Client()
         {
@@ -61,13 +62,13 @@ namespace Socks5Wrap.Socks5Client
             : this()
         {
             //Parse IP?
-            if (!IPAddress.TryParse(ipOrDomain, out ipAddress))
+            if (!IPAddress.TryParse(ipOrDomain, out _ipAddress))
             {
                 //not connected.
                 try
                 {
                     foreach (IPAddress p in Dns.GetHostAddresses(ipOrDomain))
-                        if (p.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        if (p.AddressFamily == AddressFamily.InterNetwork)
                         {
                             DoSocks(p, port, dest, destport, username, password);
                             return;
@@ -78,7 +79,7 @@ namespace Socks5Wrap.Socks5Client
                     throw new NullReferenceException();
                 }
             }           
-            DoSocks(ipAddress, port, dest, destport, username, password);
+            DoSocks(_ipAddress, port, dest, destport, username, password);
         }
         public Socks5Client(IPAddress ip, int port, string dest, int destport, string username = null, string password = null)
             : this()
@@ -88,32 +89,32 @@ namespace Socks5Wrap.Socks5Client
 
         private void DoSocks(IPAddress ip, int port, string dest, int destport, string username = null, string password = null)
         {
-            ipAddress = ip;
-            Port = port;
+            _ipAddress = ip;
+            _port = port;
             //check for username & pw.
             if(username != null && password != null)
             {
-                Username = username;
-                Password = password;
-                reqPass = true;
+                _username = username;
+                _password = password;
+                ReqPass = true;
             }
-            Dest = dest;
-            Destport = destport;
+            _dest = dest;
+            _destport = destport;
         }
 
         public IAsyncResult ConnectAsync()
         {
             //
-            p = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            Client = new Client(p, 4200);
-            Client.onClientDisconnected += Client_onClientDisconnected;
-            return Client.Sock.BeginConnect(new IPEndPoint(ipAddress, Port), new AsyncCallback(onConnected), Client);
+            _p = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Client = new Client(_p, 4200);
+            Client.OnClientDisconnected += Client_onClientDisconnected;
+            return Client.Sock.BeginConnect(new IPEndPoint(_ipAddress, _port), OnConnected, Client);
             //return status?
         }
 
         void Client_onClientDisconnected(object sender, ClientEventArgs e)
         {
-            this.OnDisconnected(this, new Socks5ClientArgs(this, SocksError.Expired));
+            OnDisconnectedEvent(this, new Socks5ClientArgs(this, SocksError.Expired));
         }
 
         public bool Send(byte[] buffer, int offset, int length)
@@ -124,11 +125,11 @@ namespace Socks5Wrap.Socks5Client
                 int offst = 0;
                 while(true)
                 {
-                    byte[] outputdata = enc.ProcessOutputData(buffer, offst, (length - offst > 4092 ? 4092 : length - offst));
+                    byte[] outputdata = Enc.ProcessOutputData(buffer, offst, (length - offst > 4092 ? 4092 : length - offst));
                     offst += (length - offst > 4092 ? 4092 : length - offst);
                     //craft headers & shit.
                     //send outputdata's length firs.t
-                    if (enc.GetAuthType() != AuthTypes.Login && enc.GetAuthType() != AuthTypes.None)
+                    if (Enc.GetAuthType() != AuthTypes.Login && Enc.GetAuthType() != AuthTypes.None)
                     {
                         byte[] datatosend = new byte[outputdata.Length + 4];
                         Buffer.BlockCopy(outputdata, 0, datatosend, 4, outputdata.Length);
@@ -160,21 +161,21 @@ namespace Socks5Wrap.Socks5Client
             //this should be packet header.
             try
             {
-                if (enc.GetAuthType() != AuthTypes.Login && enc.GetAuthType() != AuthTypes.None)
+                if (Enc.GetAuthType() != AuthTypes.Login && Enc.GetAuthType() != AuthTypes.None)
                 {
-                    if(HalfReceivedBufferLength > 0)
+                    if(_halfReceivedBufferLength > 0)
                     {
-                        if (HalfReceivedBufferLength <= count)
+                        if (_halfReceivedBufferLength <= count)
                         {
-                            Buffer.BlockCopy(HalfReceiveBuffer, 0, buffer, offset, HalfReceivedBufferLength);
-                            HalfReceivedBufferLength = 0;
-                            return HalfReceivedBufferLength;
+                            Buffer.BlockCopy(_halfReceiveBuffer, 0, buffer, offset, _halfReceivedBufferLength);
+                            _halfReceivedBufferLength = 0;
+                            return _halfReceivedBufferLength;
                         }
                         else
                         {
-                            Buffer.BlockCopy(HalfReceiveBuffer, 0, buffer, offset, count);
-                            HalfReceivedBufferLength = HalfReceivedBufferLength - count;
-                            Buffer.BlockCopy(HalfReceiveBuffer, count, HalfReceiveBuffer, 0, count);
+                            Buffer.BlockCopy(_halfReceiveBuffer, 0, buffer, offset, count);
+                            _halfReceivedBufferLength = _halfReceivedBufferLength - count;
+                            Buffer.BlockCopy(_halfReceiveBuffer, count, _halfReceiveBuffer, 0, count);
 
                             return count;
                         }
@@ -186,11 +187,11 @@ namespace Socks5Wrap.Socks5Client
                     int got = Client.Receive(databuf, 0, 4200);
 
                     int packetsize = BitConverter.ToInt32(databuf, 0);
-                    byte[] processed = enc.ProcessInputData(databuf, 4, packetsize);
+                    byte[] processed = Enc.ProcessInputData(databuf, 4, packetsize);
 
                     Buffer.BlockCopy(databuf, 0, buffer, offset, count);
-                    Buffer.BlockCopy(databuf, count, HalfReceiveBuffer, 0, packetsize - count);
-                    HalfReceivedBufferLength = packetsize - count;
+                    Buffer.BlockCopy(databuf, count, _halfReceiveBuffer, 0, packetsize - count);
+                    _halfReceivedBufferLength = packetsize - count;
                     return count;
                 }
                 else
@@ -198,17 +199,17 @@ namespace Socks5Wrap.Socks5Client
                     return Client.Receive(buffer, offset, count);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //disconnect.
                 Client.Disconnect();
-                throw ex;
+                throw;
             }
         }
 
         public void ReceiveAsync()
         {
-            if (enc.GetAuthType() != AuthTypes.Login && enc.GetAuthType() != AuthTypes.None)
+            if (Enc.GetAuthType() != AuthTypes.Login && Enc.GetAuthType() != AuthTypes.None)
             {
                 Client.ReceiveAsync(4);
             }
@@ -219,12 +220,13 @@ namespace Socks5Wrap.Socks5Client
         }
 
 
-        void Client_onDataReceived(object sender, DataEventArgs e)
+        private void Client_onDataReceived(object sender, DataEventArgs e)
         {
+            SmthReceived = true;
             //this should be packet header.
             try
             {
-                if (enc.GetAuthType() != AuthTypes.Login && enc.GetAuthType() != AuthTypes.None)
+                if (Enc.GetAuthType() != AuthTypes.Login && Enc.GetAuthType() != AuthTypes.None)
                 {
                     //get total number of bytes.
                     int torecv = BitConverter.ToInt32(e.Buffer, 0);
@@ -233,17 +235,17 @@ namespace Socks5Wrap.Socks5Client
                     int recvd = Client.Receive(newbuff, 0, torecv);
                     if (recvd == torecv)
                     {
-                        byte[] output = enc.ProcessInputData(newbuff, 0, recvd);
+                        byte[] output = Enc.ProcessInputData(newbuff, 0, recvd);
                         //receive full packet.
                         e.Buffer = output;
                         e.Offset = 0;
                         e.Count = output.Length;
-                        this.OnDataReceived(this, new Socks5ClientDataArgs(this, e.Buffer, e.Count, e.Offset));
+                        OnDataReceivedEvent(this, new Socks5ClientDataArgs(this, e.Buffer, e.Count, e.Offset));
                     }
                 }
                 else
                 {
-                    this.OnDataReceived(this, new Socks5ClientDataArgs(this, e.Buffer, e.Count, e.Offset));
+                    OnDataReceivedEvent(this, new Socks5ClientDataArgs(this, e.Buffer, e.Count, e.Offset));
                 }
             }
             catch (Exception ex)
@@ -258,14 +260,14 @@ namespace Socks5Wrap.Socks5Client
         {
             try
             {
-                p = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Client = new Client(p, 65535);
-                Client.Sock.Connect(new IPEndPoint(ipAddress, Port));
+                _p = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                Client = new Client(_p, 65535);
+                Client.Sock.Connect(new IPEndPoint(_ipAddress, _port));
                 //try the greeting.
                 //Client.onDataReceived += Client_onDataReceived;
-                if(Socks.DoSocksAuth(this, Username, Password))
-                    if (Socks.SendRequest(Client, enc, Dest, Destport) == SocksError.Granted) {
-                        Client.onDataReceived += Client_onDataReceived;
+                if(Socks.DoSocksAuth(this, _username, _password))
+                    if (Socks.SendRequest(Client, Enc, _dest, _destport) == SocksError.Granted) {
+                        Client.OnDataReceived += Client_onDataReceived;
                         return true;
                     }
                 return false;
@@ -276,7 +278,7 @@ namespace Socks5Wrap.Socks5Client
             }
         }
 
-        private void onConnected(IAsyncResult res)
+        private void OnConnected(IAsyncResult res)
         {
             Client = (Client)res.AsyncState;
             try
@@ -285,26 +287,21 @@ namespace Socks5Wrap.Socks5Client
             }
             catch
             {
-                this.OnConnected(this, new Socks5ClientArgs(null, SocksError.Failure));
+                OnConnectedEvent(this, new Socks5ClientArgs(null, SocksError.Failure));
                 return;
             }
-            if (Socks.DoSocksAuth(this, Username, Password))
+            if (Socks.DoSocksAuth(this, _username, _password))
             {
-                SocksError p = Socks.SendRequest(Client, enc, Dest, Destport);
-                Client.onDataReceived += Client_onDataReceived;
-                this.OnConnected(this, new Socks5ClientArgs(this, p));
+                SocksError p = Socks.SendRequest(Client, Enc, _dest, _destport);
+                Client.OnDataReceived += Client_onDataReceived;
+                OnConnectedEvent(this, new Socks5ClientArgs(this, p));
                 
             }
             else
-                this.OnConnected(this, new Socks5ClientArgs(this, SocksError.Failure));
+                OnConnectedEvent(this, new Socks5ClientArgs(this, SocksError.Failure));
         }
-
-
-        public bool Connected
-        {
-            get { return (Client != null ? Client.Sock.Connected : false); }
-        }
+        
+        public bool Connected => Client != null && Client.Sock.Connected;
         //send.
-
     }
 }

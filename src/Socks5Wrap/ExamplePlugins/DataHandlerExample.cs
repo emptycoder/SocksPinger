@@ -28,11 +28,11 @@ namespace Socks5Wrap.ExamplePlugins
         }
 
         //private string httpString = "HTTP/1.1";
-        private bool enabled = false;
+        private bool _enabled;
         public override bool Enabled
         {
-            get { return enabled; }
-            set { enabled = value; }
+            get { return _enabled; }
+            set { _enabled = value; }
         }
 
         public override void OnServerDataReceived(object sender, TCP.DataEventArgs e)

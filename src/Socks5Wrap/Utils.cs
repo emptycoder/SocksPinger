@@ -24,23 +24,23 @@ namespace Socks5Wrap
 {
     public class Utils
     {
-        private static Random r = new Random(Environment.TickCount);
+        private static Random _r = new Random(Environment.TickCount);
         public static string RandStr(int count)
         {
             string abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             string ret = "";
             for (int i = 0; i < count; i++)
             {
-                ret += abc[r.Next(0, abc.Length - 1)];
+                ret += abc[_r.Next(0, abc.Length - 1)];
             }
             return ret;
         }
-        public static IPAddress GetInterfaceIPAddress(string IFName)
+        public static IPAddress GetInterfaceIpAddress(string ifName)
         {
             NetworkInterface[] netif = NetworkInterface.GetAllNetworkInterfaces();
             for (int i = 0; i < netif.Length; i++)
             {
-                if (netif[i].Name == IFName)
+                if (netif[i].Name == ifName)
                 {
                     if (netif[i].GetIPProperties().UnicastAddresses.Count > 0)
                         return netif[i].GetIPProperties().UnicastAddresses[0].Address;

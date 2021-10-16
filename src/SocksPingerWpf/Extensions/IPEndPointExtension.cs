@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace SpysOnePingerWpf.Extensions
+namespace SocksPingerWpf.Extensions
 {
     public static class IpEndPointExtension
     {

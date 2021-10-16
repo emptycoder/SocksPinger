@@ -33,22 +33,22 @@ namespace Socks5Wrap.Socks
         public SocksClient Client;
         public Client RemoteClient;
 
-        private List<DataHandler> Plugins = new List<DataHandler>();
+        private List<DataHandler> _plugins = new List<DataHandler>();
 
-        private int Timeout = 10000;
-        private int PacketSize = 4096;
+        private int _timeout = 10000;
+        private int _packetSize = 4096;
 
         public SocksTunnel(SocksClient p, SocksRequest req, SocksRequest req1, int packetSize, int timeout)
         {
-            RemoteClient = new Client(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), PacketSize);
+            RemoteClient = new Client(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), _packetSize);
             Client = p;
             Req = req;
             ModifiedReq = req1;
-            PacketSize = packetSize;
-            Timeout = timeout;
+            _packetSize = packetSize;
+            _timeout = timeout;
         }
 
-        SocketAsyncEventArgs socketArgs;
+        SocketAsyncEventArgs _socketArgs;
 
         public void Open(IPAddress outbound)
         {
@@ -82,12 +82,12 @@ namespace Socks5Wrap.Socks
                 Client.Client.Disconnect();
                 return;
             }
-            socketArgs = new SocketAsyncEventArgs { RemoteEndPoint = new IPEndPoint(ModifiedReq.IP, ModifiedReq.Port) };
-            socketArgs.Completed += socketArgs_Completed;
+            _socketArgs = new SocketAsyncEventArgs { RemoteEndPoint = new IPEndPoint(ModifiedReq.Ip, ModifiedReq.Port) };
+            _socketArgs.Completed += socketArgs_Completed;
             RemoteClient.Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             RemoteClient.Sock.Bind(new IPEndPoint(outbound, 0));
-            if (!RemoteClient.Sock.ConnectAsync(socketArgs))
-                ConnectHandler(socketArgs);
+            if (!RemoteClient.Sock.ConnectAsync(_socketArgs))
+                ConnectHandler(_socketArgs);
         }
 
         void socketArgs_Completed(object sender, SocketAsyncEventArgs e)
@@ -106,10 +106,10 @@ namespace Socks5Wrap.Socks
 
             Client.Client.Send(request);
 
-            if(socketArgs != null)
+            if(_socketArgs != null)
             {
-                socketArgs.Completed -= socketArgs_Completed;
-                socketArgs.Dispose();
+                _socketArgs.Completed -= socketArgs_Completed;
+                _socketArgs.Dispose();
             }
 
             switch (e.LastOperation)
@@ -128,11 +128,11 @@ namespace Socks5Wrap.Socks
             {
                 //all plugins get the event thrown.
                 foreach (DataHandler data in PluginLoader.LoadPlugin(typeof(DataHandler)))
-                    Plugins.Push(data);
-                Client.Client.onDataReceived += Client_onDataReceived;
-                RemoteClient.onDataReceived += RemoteClient_onDataReceived;
-                RemoteClient.onClientDisconnected += RemoteClient_onClientDisconnected;
-                Client.Client.onClientDisconnected += Client_onClientDisconnected;
+                    _plugins.Push(data);
+                Client.Client.OnDataReceived += Client_onDataReceived;
+                RemoteClient.OnDataReceived += RemoteClient_onDataReceived;
+                RemoteClient.OnClientDisconnected += RemoteClient_onClientDisconnected;
+                Client.Client.OnClientDisconnected += Client_onClientDisconnected;
                 RemoteClient.ReceiveAsync();
                 Client.Client.ReceiveAsync();
             }
@@ -142,15 +142,15 @@ namespace Socks5Wrap.Socks
                 Client.Client.Disconnect();
             }
         }
-        bool disconnected = false;
+        bool _disconnected;
         void Client_onClientDisconnected(object sender, ClientEventArgs e)
         {
-            if (disconnected) return;
+            if (_disconnected) return;
             //Console.WriteLine("Client DC'd");
-            disconnected = true;
+            _disconnected = true;
             RemoteClient.Disconnect();
-            RemoteClient.onDataReceived -= RemoteClient_onDataReceived;
-            RemoteClient.onClientDisconnected -= RemoteClient_onClientDisconnected;
+            RemoteClient.OnDataReceived -= RemoteClient_onDataReceived;
+            RemoteClient.OnClientDisconnected -= RemoteClient_onClientDisconnected;
         }
 
         void RemoteClient_onClientDisconnected(object sender, ClientEventArgs e)
@@ -159,18 +159,18 @@ namespace Socks5Wrap.Socks
 #if DEBUG
             Console.WriteLine("Remote DC'd");
 #endif
-            if (disconnected) return;
+            if (_disconnected) return;
             //Console.WriteLine("Remote DC'd");
-            disconnected = true;
+            _disconnected = true;
             Client.Client.Disconnect();
-            Client.Client.onDataReceived -= Client_onDataReceived;
-            Client.Client.onClientDisconnected -= Client_onClientDisconnected;
+            Client.Client.OnDataReceived -= Client_onDataReceived;
+            Client.Client.OnClientDisconnected -= Client_onClientDisconnected;
         }
 
         void RemoteClient_onDataReceived(object sender, DataEventArgs e)
         {
-            e.Request = this.ModifiedReq;
-            foreach (DataHandler f in Plugins)
+            e.Request = ModifiedReq;
+            foreach (DataHandler f in _plugins)
                 f.OnServerDataReceived(this, e);
             Client.Client.Send(e.Buffer, e.Offset, e.Count);
             if (!RemoteClient.Receiving)
@@ -181,8 +181,8 @@ namespace Socks5Wrap.Socks
 
         void Client_onDataReceived(object sender, DataEventArgs e)
         {
-            e.Request = this.ModifiedReq;
-            foreach (DataHandler f in Plugins)
+            e.Request = ModifiedReq;
+            foreach (DataHandler f in _plugins)
                 f.OnClientDataReceived(this, e);
             
             RemoteClient.Send(e.Buffer, e.Offset, e.Count);

@@ -25,12 +25,12 @@ namespace Socks5Wrap.Socks5Client.Events
     {
         public Socks5ClientArgs(Socks5Client p, SocksError x)
         {
-            sock = p;
-            status = x;
+            _sock = p;
+            _status = x;
         }
-        private Socks5Client sock = null;
-        private SocksError status = SocksError.Failure;
-        public SocksError Status { get { return status; } }
-        public Socks5Client Client { get { return sock; } }
+        private Socks5Client _sock;
+        private SocksError _status = SocksError.Failure;
+        public SocksError Status { get { return _status; } }
+        public Socks5Client Client { get { return _sock; } }
     }
 }

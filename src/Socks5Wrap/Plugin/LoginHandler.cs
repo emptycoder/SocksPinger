@@ -25,7 +25,7 @@ namespace Socks5Wrap.Plugin
         Denied = 0xFF,
         Correct = 0x00
     }
-    public abstract class LoginHandler : GenericPlugin
+    public abstract class LoginHandler : IGenericPlugin
     {
         public abstract bool OnStart();
         public abstract LoginStatus HandleLogin(User user);

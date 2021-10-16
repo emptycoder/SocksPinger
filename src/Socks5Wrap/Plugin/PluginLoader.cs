@@ -27,10 +27,10 @@ namespace Socks5Wrap.Plugin
     {
         public static bool LoadPluginsFromDisk { get; set; }
         //load plugin staticly.
-        private static List<object> Plugins = new List<object>();
+        private static List<object> _plugins = new List<object>();
         public static void LoadPlugins()
         {
-            if (loaded) return;
+            if (_loaded) return;
             try
             {
                 try
@@ -42,7 +42,7 @@ namespace Socks5Wrap.Plugin
                             if (!CheckType(f))
                             {
                                 object type = Activator.CreateInstance(f);
-                                Plugins.Push(type);
+                                _plugins.Push(type);
 #if DEBUG
                                 Console.WriteLine("Loaded Embedded Plugin {0}.", f.FullName);
 #endif
@@ -62,7 +62,7 @@ namespace Socks5Wrap.Plugin
                             {
                                 //Console.WriteLine("Loaded type {0}.", f.ToString());
                                 object type = Activator.CreateInstance(f);
-                                Plugins.Push(type);
+                                _plugins.Push(type);
 #if DEBUG
                                 Console.WriteLine("Loaded Plugin {0}.", f.FullName);
 #endif
@@ -75,9 +75,9 @@ namespace Socks5Wrap.Plugin
                 //load plugins from disk?
                 if (LoadPluginsFromDisk)
                 {
-                    string PluginPath = Path.Combine(Environment.CurrentDirectory, "Plugins");
-                    if (!Directory.Exists(PluginPath)) { Directory.CreateDirectory(PluginPath); }
-                    foreach (string filename in Directory.GetFiles(PluginPath))
+                    string pluginPath = Path.Combine(Environment.CurrentDirectory, "Plugins");
+                    if (!Directory.Exists(pluginPath)) { Directory.CreateDirectory(pluginPath); }
+                    foreach (string filename in Directory.GetFiles(pluginPath))
                     {
                         if (filename.EndsWith(".dll"))
                         {
@@ -91,7 +91,7 @@ namespace Socks5Wrap.Plugin
                                     if (!CheckType(f))
                                     {
                                         object plug = Activator.CreateInstance(f);
-                                        Plugins.Push(plug);
+                                        _plugins.Push(plug);
                                     }
                                 }
                             }
@@ -104,7 +104,7 @@ namespace Socks5Wrap.Plugin
                 foreach (Exception p in e.LoaderExceptions)
                     Console.WriteLine(p.ToString());
             }
-            loaded = true;
+            _loaded = true;
         }
 
         public static bool LoadCustomPlugin(Type f)
@@ -115,7 +115,7 @@ namespace Socks5Wrap.Plugin
                 {
                     //Console.WriteLine("Loaded type {0}.", f.ToString());
                     object type = Activator.CreateInstance(f);
-                    Plugins.Push(type);
+                    _plugins.Push(type);
 #if DEBUG
                     Console.WriteLine("Loaded Plugin {0}.", f.FullName);
 #endif
@@ -126,11 +126,11 @@ namespace Socks5Wrap.Plugin
             return false;
         }
 
-        static List<Type> pluginTypes = new List<Type>(){ typeof(LoginHandler), typeof(DataHandler), typeof(ConnectHandler), typeof(ClientConnectedHandler), typeof(ConnectSocketOverrideHandler) };
+        static List<Type> _pluginTypes = new List<Type>(){ typeof(LoginHandler), typeof(DataHandler), typeof(ConnectHandler), typeof(ClientConnectedHandler), typeof(ConnectSocketOverrideHandler) };
 
         private static bool CheckType(Type p)
         {
-            foreach(Type x in pluginTypes)
+            foreach(Type x in _pluginTypes)
             {
                 if (x.IsAssignableFrom(p) && p != x)
                     return false;
@@ -140,18 +140,18 @@ namespace Socks5Wrap.Plugin
             return true;
         }
 
-        static bool loaded = false;
+        static bool _loaded;
 
         public static List<object> LoadPlugin(Type assemblytype)
         {
             //make sure plugins are loaded.
             List<object> list = new List<object>();
-            foreach (object x in Plugins)
+            foreach (object x in _plugins)
             {
                 if (assemblytype.IsAssignableFrom(x.GetType()))
                 {
-                    if(((GenericPlugin)x).OnStart())
-					    if(((GenericPlugin)x).Enabled)
+                    if(((IGenericPlugin)x).OnStart())
+					    if(((IGenericPlugin)x).Enabled)
                         	list.Push(x);
                 }
             }
@@ -160,17 +160,17 @@ namespace Socks5Wrap.Plugin
 
         public static List<object> GetPlugins
         {
-            get { return Plugins; }
+            get { return _plugins; }
         }
 
-        public static void ChangePluginStatus(bool Enabled, Type pluginType)
+        public static void ChangePluginStatus(bool enabled, Type pluginType)
         {
-            foreach (object x in Plugins)
+            foreach (object x in _plugins)
             {
                 if(x.GetType() == pluginType)
                 {
                     //cast to generic type.
-                    ((GenericPlugin)x).Enabled = Enabled;
+                    ((IGenericPlugin)x).Enabled = enabled;
                     break;
                 }
             }

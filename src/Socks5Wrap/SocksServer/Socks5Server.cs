@@ -30,15 +30,15 @@ namespace Socks5Wrap.SocksServer
         public int Timeout { get; set; }
         public int PacketSize { get; set; }
         public bool LoadPluginsFromDisk { get; set; }
-        public IPAddress OutboundIPAddress { get; set; }
+        public IPAddress OutboundIpAddress { get; set; }
 
         private TcpServer _server;
-        private Thread NetworkStats;
+        private Thread _networkStats;
 
         public List<SocksClient> Clients = new List<SocksClient>();
         public Stats Stats;
 
-        private bool started;
+        private bool _started;
 
         public Socks5Server(IPAddress ip, int port)
         {
@@ -46,43 +46,43 @@ namespace Socks5Wrap.SocksServer
             PacketSize = 4096;
             LoadPluginsFromDisk = false;
             Stats = new Stats();
-            OutboundIPAddress = IPAddress.Any;
+            OutboundIpAddress = IPAddress.Any;
             _server = new TcpServer(ip, port);
-            _server.onClientConnected += _server_onClientConnected;
+            _server.OnClientConnected += _server_onClientConnected;
         }
 
         public void Start()
         {
-            if (started) return;
-            Plugin.PluginLoader.LoadPluginsFromDisk = LoadPluginsFromDisk;
+            if (_started) return;
+            PluginLoader.LoadPluginsFromDisk = LoadPluginsFromDisk;
             PluginLoader.LoadPlugins(); 
             _server.PacketSize = PacketSize;
             _server.Start();
-            started = true;
+            _started = true;
             //start thread.
-            NetworkStats = new Thread(new ThreadStart(delegate()
+            _networkStats = new Thread(new ThreadStart(delegate()
             {
-                while (started)
+                while (_started)
                 {
-                    if (this.Clients.Contains(null))
-                        this.Clients.Remove(null);
-                    Stats.ResetClients(this.Clients.Count);
+                    if (Clients.Contains(null))
+                        Clients.Remove(null);
+                    Stats.ResetClients(Clients.Count);
                     Thread.Sleep(1000);
                 }
             }));
-            NetworkStats.Start();
+            _networkStats.Start();
         }
 
         public void Stop()
         {
-            if (!started) return;
+            if (!_started) return;
             _server.Stop();
             for (int i = 0; i < Clients.Count; i++)
             {
                 Clients[i].Client.Disconnect();
             }
             Clients.Clear();
-            started = false;
+            _started = false;
         }
 
         void _server_onClientConnected(object sender, ClientEventArgs e)
@@ -104,19 +104,19 @@ namespace Socks5Wrap.SocksServer
 				}
             }
             SocksClient client = new SocksClient(e.Client);
-            e.Client.onDataReceived += Client_onDataReceived;
-            e.Client.onDataSent += Client_onDataSent;
-            client.onClientDisconnected += client_onClientDisconnected;
+            e.Client.OnDataReceived += Client_onDataReceived;
+            e.Client.OnDataSent += Client_onDataSent;
+            client.OnClientDisconnected += client_onClientDisconnected;
             Clients.Add(client);
-            client.Begin(this.OutboundIPAddress, this.PacketSize, this.Timeout);
+            client.Begin(OutboundIpAddress, PacketSize, Timeout);
         }
 
         void client_onClientDisconnected(object sender, SocksClientEventArgs e)
         {
-            e.Client.onClientDisconnected -= client_onClientDisconnected;
-            e.Client.Client.onDataReceived -= Client_onDataReceived;
-            e.Client.Client.onDataSent -= Client_onDataSent;
-            this.Clients.Remove(e.Client);
+            e.Client.OnClientDisconnected -= client_onClientDisconnected;
+            e.Client.Client.OnDataReceived -= Client_onDataReceived;
+            e.Client.Client.OnDataSent -= Client_onDataSent;
+            Clients.Remove(e.Client);
             foreach (ClientDisconnectedHandler cdh in PluginLoader.LoadPlugin(typeof(ClientDisconnectedHandler)))
             {
 				try
@@ -133,15 +133,15 @@ namespace Socks5Wrap.SocksServer
         void Client_onDataSent(object sender, DataEventArgs e)
         {
             //Technically we are sending data from the remote server to the client, so it's being "received" 
-            this.Stats.AddBytes(e.Count, ByteType.Received);
-            this.Stats.AddPacket(PacketType.Received);
+            Stats.AddBytes(e.Count, ByteType.Received);
+            Stats.AddPacket(PacketType.Received);
         }
 
         void Client_onDataReceived(object sender, DataEventArgs e)
         {
             //Technically we are receiving data from the client and sending it to the remote server, so it's being "sent" 
-            this.Stats.AddBytes(e.Count, ByteType.Sent);
-            this.Stats.AddPacket(PacketType.Sent);
+            Stats.AddBytes(e.Count, ByteType.Sent);
+            Stats.AddPacket(PacketType.Sent);
         }
     }
 }

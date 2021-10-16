@@ -24,15 +24,15 @@ namespace Socks5Wrap.Socks5Client.Events
     {
         public Socks5ClientDataArgs(Socks5Client client, byte[] buff, int count, int offset)
         {
-            cli = client;
+            _cli = client;
             Buffer = buff;
             Count = count;
             Offset = offset;
         }
         //Data Buffer
         //Socks Client
-        private Socks5Client cli = null;
-        public Socks5Client Client { get { return cli; } }
+        private Socks5Client _cli;
+        public Socks5Client Client { get { return _cli; } }
         public byte[] Buffer { get; set; }
         public int Count { get; set; }
         public int Offset { get; set; }

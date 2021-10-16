@@ -20,7 +20,7 @@ using Socks5Wrap.TCP;
 
 namespace Socks5Wrap.Plugin
 {
-    public abstract class DataHandler : GenericPlugin
+    public abstract class DataHandler : IGenericPlugin
     {
         /// <summary>
         /// Allows you to grab/modify data before it's sent to the end user.

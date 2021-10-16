@@ -28,23 +28,23 @@ namespace Socks5Wrap.ExamplePlugins
             return true;
         }
 
-        public override bool OnConnect(Socks.SocksRequest Request)
+        public override bool OnConnect(Socks.SocksRequest request)
         {
             //Compare data.
-            if (Request.Address.Contains("74.125.224")) //Google.com IP
+            if (request.Address.Contains("74.125.224")) //Google.com IP
             {
-                Console.WriteLine("Redirecting traffic from {0} to yahoo.com.", Request.Address);
-                Request.Address = "www.yahoo.com";
-                Request.Type = Socks.AddressType.Domain;
+                Console.WriteLine("Redirecting traffic from {0} to yahoo.com.", request.Address);
+                request.Address = "www.yahoo.com";
+                request.Type = Socks.AddressType.Domain;
             }
             //Allow the connection.
             return true;
         }
-        private bool enabled = false;
+        private bool _enabled;
         public override bool Enabled
         {
-            get { return enabled; }
-            set { enabled = value; }
+            get { return _enabled; }
+            set { _enabled = value; }
         }
     }
 }

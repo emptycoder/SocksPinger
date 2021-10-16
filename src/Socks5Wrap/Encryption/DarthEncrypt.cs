@@ -29,29 +29,29 @@ namespace Socks5Wrap.Encryption
     {
         public DarthEncrypt()
         {
-            this.InitializeComponent();
-            if ((this.PassPhrase == null))
+            InitializeComponent();
+            if ((PassPhrase == null))
             {
-                this.PassPhrase = "Z29sZGZpc2ggYm93bA==";
+                PassPhrase = "Z29sZGZpc2ggYm93bA==";
             }
-            if ((this.SaltValue == null))
+            if ((SaltValue == null))
             {
-                this.SaltValue = "ZGlhbW9uZCByaW5n";
+                SaltValue = "ZGlhbW9uZCByaW5n";
             }
-            this.HashType = DCHashTypes._SHA1;
-            if ((this._FileDecryptExtension == null))
+            HashType = DcHashTypes.Sha1;
+            if ((_fileDecryptExtension == null))
             {
-                this._FileDecryptExtension = "dec";
+                _fileDecryptExtension = "dec";
             }
-            if ((this._FileEncryptExtension == null))
+            if ((_fileEncryptExtension == null))
             {
-                this._FileEncryptExtension = "enc";
+                _fileEncryptExtension = "enc";
             }
-            if ((this._initVector == null))
+            if ((_initVector == null))
             {
-                this._initVector = "@1B2c3D4e5F6g7H8";
+                _initVector = "@1B2c3D4e5F6g7H8";
             }
-            this._passPhraseStrength = 2;
+            _passPhraseStrength = 2;
         }
         /// <summary>
         /// Decrypt files using Rijandel-128 bit managed encryption
@@ -60,7 +60,7 @@ namespace Socks5Wrap.Encryption
         /// <remarks>Decrypts files</remarks>
         public void DecryptFile(string inFile)
         {
-            this.DoTransformFile(inFile, TransformType._decrypt, null, null);
+            DoTransformFile(inFile, TransformType.Decrypt, null, null);
         }
         /// <summary>
         /// Decrypt files using Rijandel-128 bit managed encryption
@@ -70,7 +70,7 @@ namespace Socks5Wrap.Encryption
         /// <remarks></remarks>
         public void DecryptFile(string inFile, string outFileName)
         {
-            this.DoTransformFile(inFile, TransformType._decrypt, outFileName, null);
+            DoTransformFile(inFile, TransformType.Decrypt, outFileName, null);
         }
         /// <summary>
         /// Decrypt files using Rijandel-128 bit managed encryption
@@ -81,7 +81,7 @@ namespace Socks5Wrap.Encryption
         /// <remarks></remarks>
         public void DecryptFile(string inFile, string outFileName, string outDirectory)
         {
-            this.DoTransformFile(inFile, TransformType._decrypt, outFileName, outDirectory);
+            DoTransformFile(inFile, TransformType.Decrypt, outFileName, outDirectory);
         }
         public byte[] CompressBytes(byte[] bytes, int offset, int count)
         {
@@ -120,29 +120,29 @@ namespace Socks5Wrap.Encryption
         }
         public byte[] DecryptBytes(byte[] encryptedBytes)
         {
-            string initVector = this.InitVector;
+            string initVector = InitVector;
             int num = 0x100;
             byte[] bytes = Encoding.ASCII.GetBytes(initVector);
-            byte[] rgbSalt = Encoding.ASCII.GetBytes(this.SaltValue);
+            byte[] rgbSalt = Encoding.ASCII.GetBytes(SaltValue);
             byte[] buffer = encryptedBytes;
             string strHashName = "SHA1";
-            if ((this.HashType == DCHashTypes._SHA1))
+            if ((HashType == DcHashTypes.Sha1))
             {
                 strHashName = "SHA1";
             }
-            if ((this.HashType == DCHashTypes._SHA256))
+            if ((HashType == DcHashTypes.Sha256))
             {
                 strHashName = "SHA256";
             }
-            if ((this.HashType == DCHashTypes._SHA384))
+            if ((HashType == DcHashTypes.Sha384))
             {
                 strHashName = "SHA384";
             }
-            if ((this.HashType == DCHashTypes._SHA512))
+            if ((HashType == DcHashTypes.Sha512))
             {
                 strHashName = "SHA512";
             }
-            byte[] rgbKey = new PasswordDeriveBytes(this.PassPhrase, rgbSalt, strHashName, this.PassPhraseStrength).GetBytes((num / 8));
+            byte[] rgbKey = new PasswordDeriveBytes(PassPhrase, rgbSalt, strHashName, PassPhraseStrength).GetBytes((num / 8));
             RijndaelManaged managed = new RijndaelManaged();
             managed.Mode = CipherMode.CBC;
             managed.Padding = PaddingMode.Zeros;
@@ -163,29 +163,29 @@ namespace Socks5Wrap.Encryption
         /// <remarks>Decrypts text</remarks>
         public string DecryptString(string encryptedText)
         {
-            string initVector = this.InitVector;
+            string initVector = InitVector;
             int num = 0x100;
             byte[] bytes = Encoding.ASCII.GetBytes(initVector);
-            byte[] rgbSalt = Encoding.ASCII.GetBytes(this.SaltValue);
+            byte[] rgbSalt = Encoding.ASCII.GetBytes(SaltValue);
             byte[] buffer = Convert.FromBase64String(encryptedText);
             string strHashName = "SHA1";
-            if ((this.HashType == DCHashTypes._SHA1))
+            if ((HashType == DcHashTypes.Sha1))
             {
                 strHashName = "SHA1";
             }
-            if ((this.HashType == DCHashTypes._SHA256))
+            if ((HashType == DcHashTypes.Sha256))
             {
                 strHashName = "SHA256";
             }
-            if ((this.HashType == DCHashTypes._SHA384))
+            if ((HashType == DcHashTypes.Sha384))
             {
                 strHashName = "SHA384";
             }
-            if ((this.HashType == DCHashTypes._SHA512))
+            if ((HashType == DcHashTypes.Sha512))
             {
                 strHashName = "SHA512";
             }
-            byte[] rgbKey = new PasswordDeriveBytes(this.PassPhrase, rgbSalt, strHashName, this.PassPhraseStrength).GetBytes((num / 8));
+            byte[] rgbKey = new PasswordDeriveBytes(PassPhrase, rgbSalt, strHashName, PassPhraseStrength).GetBytes((num / 8));
             RijndaelManaged managed = new RijndaelManaged();
             managed.Mode = CipherMode.CBC;
             ICryptoTransform transform = managed.CreateDecryptor(rgbKey, bytes);
@@ -202,31 +202,31 @@ namespace Socks5Wrap.Encryption
         {
             ICryptoTransform transform = null;
             FileInfo info = new FileInfo(inFile);
-            string initVector = this.InitVector;
+            string initVector = InitVector;
             int num = 0x100;
             byte[] bytes = Encoding.ASCII.GetBytes(initVector);
-            byte[] rgbSalt = Encoding.ASCII.GetBytes(this.SaltValue);
+            byte[] rgbSalt = Encoding.ASCII.GetBytes(SaltValue);
             string strHashName = "SHA1";
-            if ((this.HashType == DCHashTypes._SHA1))
+            if ((HashType == DcHashTypes.Sha1))
             {
                 strHashName = "SHA1";
             }
-            if ((this.HashType == DCHashTypes._SHA256))
+            if ((HashType == DcHashTypes.Sha256))
             {
                 strHashName = "SHA256";
             }
-            if ((this.HashType == DCHashTypes._SHA384))
+            if ((HashType == DcHashTypes.Sha384))
             {
                 strHashName = "SHA384";
             }
-            if ((this.HashType == DCHashTypes._SHA512))
+            if ((HashType == DcHashTypes.Sha512))
             {
                 strHashName = "SHA512";
             }
-            byte[] rgbKey = new PasswordDeriveBytes(this.PassPhrase, rgbSalt, strHashName, this.PassPhraseStrength).GetBytes((num / 8));
+            byte[] rgbKey = new PasswordDeriveBytes(PassPhrase, rgbSalt, strHashName, PassPhraseStrength).GetBytes((num / 8));
             RijndaelManaged managed = new RijndaelManaged();
             managed.Mode = CipherMode.CBC;
-            if ((aType == TransformType._encrypt))
+            if ((aType == TransformType.Encrypt))
             {
                 transform = managed.CreateEncryptor(rgbKey, bytes);
             }
@@ -237,13 +237,13 @@ namespace Socks5Wrap.Encryption
             string path = "";
             if ((newFileName == null))
             {
-                if ((aType == TransformType._encrypt))
+                if ((aType == TransformType.Encrypt))
                 {
-                    path = (inFile.Substring(0, inFile.LastIndexOf(".")) + "." + this.FileEncryptExtension);
+                    path = (inFile.Substring(0, inFile.LastIndexOf(".")) + "." + FileEncryptExtension);
                 }
                 else
                 {
-                    path = (inFile.Substring(0, inFile.LastIndexOf(".")) + "." + this.FileDecryptExtension);
+                    path = (inFile.Substring(0, inFile.LastIndexOf(".")) + "." + FileDecryptExtension);
                 }
             }
             if (((newFileName != null)))
@@ -259,13 +259,13 @@ namespace Socks5Wrap.Encryption
                     path = (info3.DirectoryName + "\\" + newFileName);
                     if ((path.LastIndexOf(".") < 1))
                     {
-                        if ((aType == TransformType._encrypt))
+                        if ((aType == TransformType.Encrypt))
                         {
-                            path = (path + "." + this.FileEncryptExtension);
+                            path = (path + "." + FileEncryptExtension);
                         }
                         else
                         {
-                            path = (path + "." + this.FileDecryptExtension);
+                            path = (path + "." + FileDecryptExtension);
                         }
                     }
                 }
@@ -301,7 +301,7 @@ namespace Socks5Wrap.Encryption
         /// <remarks></remarks>
         public void EncryptFile(string inFile)
         {
-            this.DoTransformFile(inFile, TransformType._encrypt, null, null);
+            DoTransformFile(inFile, TransformType.Encrypt, null, null);
         }
         /// <summary>
         /// Encrypts file
@@ -311,7 +311,7 @@ namespace Socks5Wrap.Encryption
         /// <remarks></remarks>
         public void EncryptFile(string inFile, string outFileName)
         {
-            this.DoTransformFile(inFile, TransformType._encrypt, outFileName, null);
+            DoTransformFile(inFile, TransformType.Encrypt, outFileName, null);
         }
         /// <summary>
         /// Encrypts file
@@ -322,33 +322,33 @@ namespace Socks5Wrap.Encryption
         /// <remarks></remarks>
         public void EncryptFile(string inFile, string outFileName, string outDirectory)
         {
-            this.DoTransformFile(inFile, TransformType._encrypt, outFileName, outDirectory);
+            DoTransformFile(inFile, TransformType.Encrypt, outFileName, outDirectory);
         }
         public byte[] EncryptBytes(byte[] bytearray)
         {
-            string initVector = this.InitVector;
+            string initVector = InitVector;
             int num = 0x100;
             byte[] bytes = Encoding.ASCII.GetBytes(initVector);
-            byte[] rgbSalt = Encoding.ASCII.GetBytes(this.SaltValue);
+            byte[] rgbSalt = Encoding.ASCII.GetBytes(SaltValue);
             byte[] buffer = bytearray;
             string strHashName = "SHA1";
-            if ((this.HashType == DCHashTypes._SHA1))
+            if ((HashType == DcHashTypes.Sha1))
             {
                 strHashName = "SHA1";
             }
-            if ((this.HashType == DCHashTypes._SHA256))
+            if ((HashType == DcHashTypes.Sha256))
             {
                 strHashName = "SHA256";
             }
-            if ((this.HashType == DCHashTypes._SHA384))
+            if ((HashType == DcHashTypes.Sha384))
             {
                 strHashName = "SHA384";
             }
-            if ((this.HashType == DCHashTypes._SHA512))
+            if ((HashType == DcHashTypes.Sha512))
             {
                 strHashName = "SHA512";
             }
-            byte[] rgbKey = new PasswordDeriveBytes(this.PassPhrase, rgbSalt, strHashName, this.PassPhraseStrength).GetBytes((num / 8));
+            byte[] rgbKey = new PasswordDeriveBytes(PassPhrase, rgbSalt, strHashName, PassPhraseStrength).GetBytes((num / 8));
             RijndaelManaged managed = new RijndaelManaged();
             managed.Mode = CipherMode.CBC;
             managed.Padding = PaddingMode.Zeros;
@@ -371,29 +371,29 @@ namespace Socks5Wrap.Encryption
         [Description("Encrypt a string using your preferred encryption settings (pass phrase, salt value..)")]
         public string EncryptString(string plainText)
         {
-            string initVector = this.InitVector;
+            string initVector = InitVector;
             int num = 0x100;
             byte[] bytes = Encoding.ASCII.GetBytes(initVector);
-            byte[] rgbSalt = Encoding.ASCII.GetBytes(this.SaltValue);
+            byte[] rgbSalt = Encoding.ASCII.GetBytes(SaltValue);
             byte[] buffer = Encoding.UTF8.GetBytes(plainText);
             string strHashName = "SHA1";
-            if ((this.HashType == DCHashTypes._SHA1))
+            if ((HashType == DcHashTypes.Sha1))
             {
                 strHashName = "SHA1";
             }
-            if ((this.HashType == DCHashTypes._SHA256))
+            if ((HashType == DcHashTypes.Sha256))
             {
                 strHashName = "SHA256";
             }
-            if ((this.HashType == DCHashTypes._SHA384))
+            if ((HashType == DcHashTypes.Sha384))
             {
                 strHashName = "SHA384";
             }
-            if ((this.HashType == DCHashTypes._SHA512))
+            if ((HashType == DcHashTypes.Sha512))
             {
                 strHashName = "SHA512";
             }
-            byte[] rgbKey = new PasswordDeriveBytes(this.PassPhrase, rgbSalt, strHashName, this.PassPhraseStrength).GetBytes((num / 8));
+            byte[] rgbKey = new PasswordDeriveBytes(PassPhrase, rgbSalt, strHashName, PassPhraseStrength).GetBytes((num / 8));
             RijndaelManaged managed = new RijndaelManaged();
             managed.Mode = CipherMode.CBC;
             ICryptoTransform transform = managed.CreateEncryptor(rgbKey, bytes);
@@ -416,16 +416,16 @@ namespace Socks5Wrap.Encryption
         [Category("File Defaults"), Description("The default decrypted file extension")]
         public string FileDecryptExtension
         {
-            get { return this._FileDecryptExtension; }
+            get { return _fileDecryptExtension; }
             set
             {
                 if ((value.Length < 3))
                 {
-                    this._FileDecryptExtension = "dec";
+                    _fileDecryptExtension = "dec";
                 }
                 else
                 {
-                    this._FileDecryptExtension = value;
+                    _fileDecryptExtension = value;
                 }
             }
         }
@@ -433,40 +433,40 @@ namespace Socks5Wrap.Encryption
         [Category("File Defaults"), Description("The default encrypted file extension")]
         public string FileEncryptExtension
         {
-            get { return this._FileEncryptExtension; }
+            get { return _fileEncryptExtension; }
             set
             {
                 if ((value.Length < 3))
                 {
-                    this._FileEncryptExtension = "enc";
+                    _fileEncryptExtension = "enc";
                 }
                 else
                 {
-                    this._FileEncryptExtension = value;
+                    _fileEncryptExtension = value;
                 }
             }
         }
 
         [Category("Encryption Options"), Description("The type of HASH you want to use to aid RijndaelManaged transformations")]
-        public DCHashTypes HashType
+        public DcHashTypes HashType
         {
-            get { return this._DCHashTypes; }
-            set { this._DCHashTypes = value; }
+            get { return _dcHashTypes; }
+            set { _dcHashTypes = value; }
         }
 
         [Category("Encryption Options"), Description("The initialization vector to use (must be 16 chars)")]
         public string InitVector
         {
-            get { return this._initVector; }
+            get { return _initVector; }
             set
             {
                 if ((value.Length != 0x10))
                 {
-                    this._initVector = "@1B2c3D4e5F6g7H8";
+                    _initVector = "@1B2c3D4e5F6g7H8";
                 }
                 else
                 {
-                    this._initVector = value;
+                    _initVector = value;
                 }
             }
         }
@@ -474,23 +474,23 @@ namespace Socks5Wrap.Encryption
         [Description("The secret pass phrase to use for encryption and decryption"), Category("Encryption Options")]
         public string PassPhrase
         {
-            get { return this._PassPhrase; }
-            set { this._PassPhrase = value; }
+            get { return _passPhrase; }
+            set { _passPhrase = value; }
         }
 
         [Category("Encryption Options"), Description("The Pass Phrase strength (5 high, 1 low)")]
         public int PassPhraseStrength
         {
-            get { return this._passPhraseStrength; }
+            get { return _passPhraseStrength; }
             set
             {
                 if ((value > 5))
                 {
-                    this._passPhraseStrength = 2;
+                    _passPhraseStrength = 2;
                 }
                 else
                 {
-                    this._passPhraseStrength = value;
+                    _passPhraseStrength = value;
                 }
             }
         }
@@ -498,36 +498,36 @@ namespace Socks5Wrap.Encryption
         [Category("Encryption Options"), Description("The salt value used to foil hackers attempting to crack the encryption")]
         public string SaltValue
         {
-            get { return this._SaltValue; }
-            set { this._SaltValue = value; }
+            get { return _saltValue; }
+            set { _saltValue = value; }
         }
 
 
         // Fields
-        private DCHashTypes _DCHashTypes;
-        private string _FileDecryptExtension;
-        private string _FileEncryptExtension;
+        private DcHashTypes _dcHashTypes;
+        private string _fileDecryptExtension;
+        private string _fileEncryptExtension;
         private string _initVector;
-        private string _PassPhrase;
+        private string _passPhrase;
         private int _passPhraseStrength;
-        private string _SaltValue;
+        private string _saltValue;
 
 
         // Nested Types
-        public enum DCHashTypes
+        public enum DcHashTypes
         {
             // Fields
-            _SHA1 = 0,
-            _SHA256 = 1,
-            _SHA384 = 2,
-            _SHA512 = 3
+            Sha1 = 0,
+            Sha256 = 1,
+            Sha384 = 2,
+            Sha512 = 3
         }
 
         private enum TransformType
         {
             // Fields
-            _decrypt = 1,
-            _encrypt = 0
+            Decrypt = 1,
+            Encrypt = 0
         }
     }
 }

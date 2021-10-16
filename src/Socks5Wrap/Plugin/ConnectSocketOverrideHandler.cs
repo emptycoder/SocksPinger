@@ -21,7 +21,7 @@ using Socks5Wrap.TCP;
 
 namespace Socks5Wrap.Plugin
 {
-    public abstract class ConnectSocketOverrideHandler : GenericPlugin
+    public abstract class ConnectSocketOverrideHandler : IGenericPlugin
     {
         public abstract bool OnStart();
         public abstract bool Enabled { get; set; }
