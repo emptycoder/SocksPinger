@@ -1,15 +1,15 @@
 Socks Pinger
 =====================
 
-**If application don't run see error.log file.**
+**If application doesn't run look at the error.log file.**
 
 ## Preconditions
 - [Install .NET CORE 3.1 RUNTIME](https://dotnet.microsoft.com/download/dotnet/3.1)
 - [Install Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-160)
 
 ## Settings
-Create settings.json in folder with .exe file.
-Spys.One config
+Create settings.json in the folder with .exe file.
+Spys.One config:
 ```
 string { "serviceAddress": "https://spys.one/en/socks-proxy-list/" }
 string { "executedJsOnStart": "document.getElementById('xpp').value = '5'; document.querySelector(`form[method='post']`).submit()" }
@@ -31,4 +31,4 @@ bool { "isCacheRequests": true }
 - [SpectreConsole](https://spectreconsole.net)
 
 ## About
-Socks Pinger developing under the [MIT license](LICENSE).
+Socks Pinger is developing under the [MIT license](LICENSE).
